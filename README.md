@@ -50,6 +50,11 @@ the POM generation specify the information within the configuration element `mod
         }
     }
 
+In your `~/.gradle/gradle.properties` you will need to set the mandatory Nexus credentials required for uploading your artifacts.
+
+    nexusUsername = yourUsername
+    nexusPassword = yourPassword
+
 ### Example
 
     modifyPom {
