@@ -1,0 +1,124 @@
+apply plugin: 'groovy'
+apply plugin: 'idea'
+apply plugin: 'maven'
+
+def compatibilityVersion = 1.5
+sourceCompatibility = compatibilityVersion
+targetCompatibility = compatibilityVersion
+group = 'org.gradle.api.plugins'
+version = '0.1'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    groovy localGroovy()
+    compile gradleApi()
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'Gradle Sonatype Nexus plugin',
+                   'Implementation-Version': version,
+                   'Built-By': System.getProperty('user.name'),
+                   'Built-Date': new Date(),
+                   'Built-JDK': System.getProperty('java.version'),
+                   'Built-Gradle': gradle.gradleVersion
+    }
+}
+
+idea.project {
+    jdkName = '1.6'
+
+    ipr.withXml { provider ->
+        def node = provider.asNode()
+
+        // Use GIT
+        def vcsConfig = node.component.find { it.'@name' == 'VcsDirectoryMappings' }
+        vcsConfig.mapping[0].'@vcs' = 'Git'
+
+        // Set Gradle home
+        def gradleSettings = node.appendNode('component', [name: 'GradleSettings'])
+        gradleSettings.appendNode('option', [name: 'SDK_HOME', value: gradle.gradleHomeDir])
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.0-rc-3'
+}
+
+task sourcesJar(type: Jar) {
+    classifier 'sources'
+    from sourceSets.main.allSource
+}
+
+task groovydocJar(type: Jar, dependsOn: groovydoc) {
+    classifier 'javadoc'
+    from groovydoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives groovydocJar
+}
+
+ext.pomConfiguration = {
+    name 'Gradle Sonatype Nexus plugin'
+    description 'Gradle plugin for configuring and upload artifacts to Sonatype Nexus.'
+    url 'https://github.com/bmuschko/gradle-nexus-plugin'
+    inceptionYear '2012'
+
+    scm {
+        url 'https://github.com/bmuschko/gradle-nexus-plugin'
+        connection 'scm:https://bmuschko@github.com/bmuschko/gradle-nexus-plugin.git'
+        developerConnection 'scm:git://github.com/bmuschko/gradle-nexus-plugin.git'
+    }
+
+    licenses {
+        license {
+            name 'The Apache Software License, Version 2.0'
+            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            distribution 'repo'
+        }
+    }
+
+    developers {
+        developer {
+            id 'bmuschko'
+            name 'Benjamin Muschko'
+            email 'benjamin.muschko@gmail.com'
+        }
+    }
+}
+
+install {
+    repositories.mavenInstaller {
+        pom.project pomConfiguration
+    }
+}
+
+if(hasProperty('nexusUsername') && hasProperty('nexusPassword')) {
+    apply plugin: 'signing'
+
+    signing {
+        sign configurations.archives
+    }
+
+    uploadArchives {
+        repositories.mavenDeployer {
+            beforeDeployment { deployment ->
+                signing.signPom(deployment)
+            }
+
+            name = 'mavenCentralReleaseDeployer'
+
+            repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
+                authentication(userName: nexusUsername, password: nexusPassword)
+                releases(updatePolicy: 'always')
+            }
+
+            pom.project pomConfiguration
+        }
+    }
+}
