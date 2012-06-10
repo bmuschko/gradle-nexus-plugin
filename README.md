@@ -41,6 +41,8 @@ The Nexus plugin defines the following convention properties in the `nexus` clos
 * `repositoryUrl`: The stable release repository URL (defaults to `https://oss.sonatype.org/service/local/staging/deploy/maven2/`).
 * `snapshotRepositoryUrl`: The stable release repository URL (defaults to `https://oss.sonatype.org/content/repositories/snapshots/`).
 
+## Additional configuration
+
 In addition to the convention properties the automatically generated POM file can be modified. To provide the data for
 the POM generation specify the information within the configuration element `modifyPom.project`.
 
