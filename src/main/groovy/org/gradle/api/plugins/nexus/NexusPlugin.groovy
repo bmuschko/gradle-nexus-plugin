@@ -42,6 +42,7 @@ class NexusPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
         project.plugins.apply(MavenPlugin)
+        project.plugins.apply(SigningPlugin)
 
         NexusPluginConvention nexusPluginConvention = new NexusPluginConvention()
         project.convention.plugins.nexus = nexusPluginConvention
@@ -78,10 +79,8 @@ class NexusPlugin implements Plugin<Project> {
     }
 
     private void configureSigning(Project project, NexusPluginConvention nexusPluginConvention) {
-        project.gradle.taskGraph.whenReady { TaskExecutionGraph taskGraph ->
+        project.afterEvaluate {
             if(nexusPluginConvention.sign) {
-                project.plugins.apply(SigningPlugin)
-
                 project.signing {
                     sign project.configurations.archives
 
