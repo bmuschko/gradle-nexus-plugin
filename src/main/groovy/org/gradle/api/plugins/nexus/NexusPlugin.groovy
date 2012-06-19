@@ -35,6 +35,7 @@ class NexusPlugin implements Plugin<Project> {
     static final String SOURCES_JAR_TASK_NAME = 'sourcesJar'
     static final String JAVADOC_JAR_TASK_NAME = 'javadocJar'
     static final String UPLOAD_ARCHIVES_TASK_NAME = 'uploadArchives'
+    static final String UPLOAD_ARCHIVES_TASK_GRAPH_NAME = ":$UPLOAD_ARCHIVES_TASK_NAME"
     static final String ARCHIVES_CONFIGURATION_NAME = 'archives'
     static final String NEXUS_USERNAME = 'nexusUsername'
     static final String NEXUS_PASSWORD = 'nexusPassword'
@@ -82,6 +83,10 @@ class NexusPlugin implements Plugin<Project> {
         project.afterEvaluate {
             if(nexusPluginConvention.sign) {
                 project.signing {
+                    required {
+                        project.gradle.taskGraph.hasTask(UPLOAD_ARCHIVES_TASK_GRAPH_NAME) && !project.version.endsWith('SNAPSHOT')
+                    }
+
                     sign project.configurations.archives
 
                     project.tasks.withType(Upload) {
@@ -110,7 +115,7 @@ class NexusPlugin implements Plugin<Project> {
     private void configureUpload(Project project, NexusPluginConvention nexusPluginConvention) {
         project.tasks.getByName(UPLOAD_ARCHIVES_TASK_NAME).repositories.mavenDeployer() {
             project.gradle.taskGraph.whenReady { TaskExecutionGraph taskGraph ->
-                if(taskGraph.allTasks*.name.contains(UPLOAD_ARCHIVES_TASK_NAME)) {
+                if(taskGraph.hasTask(UPLOAD_ARCHIVES_TASK_GRAPH_NAME)) {
                     if(!hasNexusCredentials(project)) {
                         throw new InvalidUserDataException("You are trying to upload and do not have credentials set. Please set '$NEXUS_USERNAME' and '$NEXUS_PASSWORD'!")
                     }
