@@ -24,7 +24,7 @@ example on how to retrieve it from Maven Central:
         }
 
         dependencies {
-            classpath 'org.gradle.api.plugins:gradle-nexus-plugin:0.1'
+            classpath 'org.gradle.api.plugins:gradle-nexus-plugin:0.2'
         }
     }
 
