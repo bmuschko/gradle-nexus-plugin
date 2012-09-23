@@ -45,7 +45,7 @@ idea.project {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.0'
+    gradleVersion = '1.2'
 }
 
 task sourcesJar(type: Jar) {
