@@ -52,7 +52,6 @@ class NexusPlugin implements Plugin<Project> {
         configureSourcesJarTask(project, nexusPluginConvention)
         configureTestsJarTask(project, nexusPluginConvention)
         configureJavadocJarTask(project, nexusPluginConvention)
-        // addArtifacts(project)
         configureSigning(project, nexusPluginConvention)
         configurePom(project)
         configureUpload(project, nexusPluginConvention)
@@ -89,12 +88,6 @@ class NexusPlugin implements Plugin<Project> {
             }
             project.artifacts.add(ARCHIVES_CONFIGURATION_NAME, project.javadocJar)
         }
-    }
-
-    private void addArtifacts(Project project) {
-        project.artifacts.add(ARCHIVES_CONFIGURATION_NAME, project.sourcesJar)
-        project.artifacts.add(ARCHIVES_CONFIGURATION_NAME, project.testsJar)
-        project.artifacts.add(ARCHIVES_CONFIGURATION_NAME, project.javadocJar)
     }
 
     private void configureSigning(Project project, NexusPluginConvention nexusPluginConvention) {
