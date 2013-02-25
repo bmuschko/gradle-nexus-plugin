@@ -33,6 +33,7 @@ import org.gradle.plugins.signing.SigningPlugin
  */
 class NexusPlugin implements Plugin<Project> {
     static final String SOURCES_JAR_TASK_NAME = 'sourcesJar'
+    static final String TESTS_JAR_TASK_NAME = 'testsJar'
     static final String JAVADOC_JAR_TASK_NAME = 'javadocJar'
     static final String UPLOAD_ARCHIVES_TASK_NAME = 'uploadArchives'
     static final String UPLOAD_ARCHIVES_TASK_GRAPH_NAME = ":$UPLOAD_ARCHIVES_TASK_NAME"
@@ -48,34 +49,51 @@ class NexusPlugin implements Plugin<Project> {
         NexusPluginConvention nexusPluginConvention = new NexusPluginConvention()
         project.convention.plugins.nexus = nexusPluginConvention
 
-        configureSourcesJarTask(project)
-        configureJavaDocJarTask(project)
-        addArtifacts(project)
+        configureSourcesJarTask(project, nexusPluginConvention)
+        configureTestsJarTask(project, nexusPluginConvention)
+        configureJavadocJarTask(project, nexusPluginConvention)
+        // addArtifacts(project)
         configureSigning(project, nexusPluginConvention)
         configurePom(project)
         configureUpload(project, nexusPluginConvention)
     }
 
-    private void configureSourcesJarTask(Project project) {
-        Jar sourcesJarTask = project.tasks.add(SOURCES_JAR_TASK_NAME, Jar)
-        sourcesJarTask.classifier = 'sources'
-        sourcesJarTask.from project.sourceSets.main.allSource
+    private void configureSourcesJarTask(Project project, NexusPluginConvention nexusPluginConvention) {
+        if(nexusPluginConvention.attachSources) {
+            Jar sourcesJarTask = project.tasks.add(SOURCES_JAR_TASK_NAME, Jar)
+            sourcesJarTask.classifier = 'sources'
+            sourcesJarTask.from project.sourceSets.main.allSource
+            project.artifacts.add(ARCHIVES_CONFIGURATION_NAME, project.sourcesJar)
+        }
     }
 
-    private void configureJavaDocJarTask(Project project) {
-        Jar javaDocJarTask = project.tasks.add(JAVADOC_JAR_TASK_NAME, Jar)
-        javaDocJarTask.classifier = 'javadoc'
-
-        if(hasGroovyPlugin(project)) {
-            javaDocJarTask.from project.groovydoc
+    private void configureTestsJarTask(Project project, NexusPluginConvention nexusPluginConvention) {
+        if(nexusPluginConvention.attachTests) {
+            Jar testsJarTask = project.tasks.add(TESTS_JAR_TASK_NAME, Jar)
+            testsJarTask.classifier = 'tests'
+            testsJarTask.from project.sourceSets.test.output
+            project.artifacts.add(ARCHIVES_CONFIGURATION_NAME, project.testsJar)
         }
-        else if(hasJavaPlugin(project)) {
-            javaDocJarTask.from project.javadoc
+    }
+
+    private void configureJavadocJarTask(Project project, NexusPluginConvention nexusPluginConvention) {
+        if(nexusPluginConvention.attachJavadoc) {
+            Jar javadocJarTask = project.tasks.add(JAVADOC_JAR_TASK_NAME, Jar)
+            javadocJarTask.classifier = 'javadoc'
+
+            if(hasGroovyPlugin(project)) {
+                javadocJarTask.from project.groovydoc
+            }
+            else if(hasJavaPlugin(project)) {
+                javadocJarTask.from project.javadoc
+            }
+            project.artifacts.add(ARCHIVES_CONFIGURATION_NAME, project.javadocJar)
         }
     }
 
     private void addArtifacts(Project project) {
         project.artifacts.add(ARCHIVES_CONFIGURATION_NAME, project.sourcesJar)
+        project.artifacts.add(ARCHIVES_CONFIGURATION_NAME, project.testsJar)
         project.artifacts.add(ARCHIVES_CONFIGURATION_NAME, project.javadocJar)
     }
 
