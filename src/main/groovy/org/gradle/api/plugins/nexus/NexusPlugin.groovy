@@ -34,6 +34,9 @@ import org.gradle.plugins.signing.SigningPlugin
 class NexusPlugin implements Plugin<Project> {
     static final String SOURCES_JAR_TASK_NAME = 'sourcesJar'
     static final String JAVADOC_JAR_TASK_NAME = 'javadocJar'
+    static final String SOURCES_JAR_TASK_DESCRIPTION  = 'Assembles a jar archive containing the main sources of this project.'
+    static final String JAVADOC_JAR_TASK_DESCRIPTION = 'Assembles a jar archive containing the generated javadoc of this project.'
+    static final String JAR_TASK_GROUP = 'Build'
     static final String UPLOAD_ARCHIVES_TASK_NAME = 'uploadArchives'
     static final String UPLOAD_ARCHIVES_TASK_GRAPH_NAME = ":$UPLOAD_ARCHIVES_TASK_NAME"
     static final String ARCHIVES_CONFIGURATION_NAME = 'archives'
@@ -47,6 +50,7 @@ class NexusPlugin implements Plugin<Project> {
 
         NexusPluginConvention nexusPluginConvention = new NexusPluginConvention()
         project.convention.plugins.nexus = nexusPluginConvention
+        project.extensions.add('nexus', nexusPluginConvention)
 
         configureSourcesJarTask(project)
         configureJavaDocJarTask(project)
@@ -56,15 +60,19 @@ class NexusPlugin implements Plugin<Project> {
         configureUpload(project, nexusPluginConvention)
     }
 
-    private void configureSourcesJarTask(Project project) {
+    private static void configureSourcesJarTask(Project project) {
         Jar sourcesJarTask = project.tasks.add(SOURCES_JAR_TASK_NAME, Jar)
         sourcesJarTask.classifier = 'sources'
+        sourcesJarTask.group = JAR_TASK_GROUP
+        sourcesJarTask.description = SOURCES_JAR_TASK_DESCRIPTION
         sourcesJarTask.from project.sourceSets.main.allSource
     }
 
-    private void configureJavaDocJarTask(Project project) {
+    private static void configureJavaDocJarTask(Project project) {
         Jar javaDocJarTask = project.tasks.add(JAVADOC_JAR_TASK_NAME, Jar)
         javaDocJarTask.classifier = 'javadoc'
+        javaDocJarTask.group = JAR_TASK_GROUP
+        javaDocJarTask.description = JAVADOC_JAR_TASK_DESCRIPTION
 
         if(hasGroovyPlugin(project)) {
             javaDocJarTask.from project.groovydoc
@@ -74,7 +82,7 @@ class NexusPlugin implements Plugin<Project> {
         }
     }
 
-    private void addArtifacts(Project project) {
+    private static void addArtifacts(Project project) {
         project.artifacts.add(ARCHIVES_CONFIGURATION_NAME, project.sourcesJar)
         project.artifacts.add(ARCHIVES_CONFIGURATION_NAME, project.javadocJar)
     }
@@ -101,7 +109,7 @@ class NexusPlugin implements Plugin<Project> {
         }
     }
 
-    private void configurePom(Project project) {
+    private static void configurePom(Project project) {
         project.ext.modifyPom = { Closure modification ->
             project.poms.each {
                 it.whenConfigured { project.configure(it, modification) }
@@ -145,7 +153,7 @@ class NexusPlugin implements Plugin<Project> {
      * @param project Project
      * @return Flag
      */
-    private boolean hasNexusCredentials(Project project) {
+    private static boolean hasNexusCredentials(Project project) {
         project.hasProperty(NEXUS_USERNAME) && project.hasProperty(NEXUS_PASSWORD)
     }
 
@@ -155,7 +163,7 @@ class NexusPlugin implements Plugin<Project> {
      * @param project Project
      * @return Flag
      */
-    private boolean hasJavaPlugin(Project project) {
+    private static boolean hasJavaPlugin(Project project) {
         project.plugins.hasPlugin(JavaPlugin)
     }
 
@@ -165,7 +173,7 @@ class NexusPlugin implements Plugin<Project> {
      * @param project Project
      * @return Flag
      */
-    private boolean hasGroovyPlugin(Project project) {
+    private static boolean hasGroovyPlugin(Project project) {
         project.plugins.hasPlugin(GroovyPlugin)
     }
 }
