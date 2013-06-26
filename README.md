@@ -30,7 +30,9 @@ example on how to retrieve it from Maven Central:
 
 ## Tasks
 
-The Nexus plugin does not define its own tasks. It leverages the default tasks provided by the
+The Nexus plugin defines two tasks: `javadocJar` and `sourcesJar` which compile their respective content from the main source set.
+The output of `javadocJar` and `sourcesJar` are added to the `archives` configuration which (with the java plugin applied)
+already contains the output of `jar`, where they can be leveraged by the default tasks provided by the
 [Maven plugin](http://gradle.org/docs/current/userguide/maven_plugin.html): `install` and `uploadArchives`.
 
 ## Convention properties
