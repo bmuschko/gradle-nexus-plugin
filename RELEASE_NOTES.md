@@ -1,3 +1,8 @@
+### Version 0.3 (August 17, 2012)
+
+* Fixed deprecation messages.
+* Update to Gradle Wrapper 1.7.
+
 ### Version 0.2 (September 23, 2012)
 
 * Only sign artifacts if task graph has upload task - [Issue 2](https://github.com/bmuschko/gradle-nexus-plugin/issues/2).
