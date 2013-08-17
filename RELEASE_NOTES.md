@@ -1,4 +1,4 @@
-### Version 0.3 (August 17, 2012)
+### Version 0.3 (August 17, 2013)
 
 * Fixed deprecation messages.
 * Update to Gradle Wrapper 1.7.
