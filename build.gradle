@@ -6,14 +6,14 @@ def compatibilityVersion = 1.5
 sourceCompatibility = compatibilityVersion
 targetCompatibility = compatibilityVersion
 group = 'org.gradle.api.plugins'
-version = '0.2'
+version = '0.3'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    groovy localGroovy()
+    compile localGroovy()
     compile gradleApi()
 }
 
@@ -45,7 +45,7 @@ idea.project {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.2'
+    gradleVersion = '1.7'
 }
 
 task sourcesJar(type: Jar) {

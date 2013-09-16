@@ -55,13 +55,13 @@ class NexusPlugin implements Plugin<Project> {
     }
 
     private void configureSourcesJarTask(Project project) {
-        Jar sourcesJarTask = project.tasks.add(SOURCES_JAR_TASK_NAME, Jar)
+        Jar sourcesJarTask = project.tasks.create(SOURCES_JAR_TASK_NAME, Jar)
         sourcesJarTask.classifier = 'sources'
         sourcesJarTask.from project.sourceSets.main.allSource
     }
 
     private void configureJavaDocJarTask(Project project) {
-        Jar javaDocJarTask = project.tasks.add(JAVADOC_JAR_TASK_NAME, Jar)
+        Jar javaDocJarTask = project.tasks.create(JAVADOC_JAR_TASK_NAME, Jar)
         javaDocJarTask.classifier = 'javadoc'
 
         if(hasGroovyPlugin(project)) {
