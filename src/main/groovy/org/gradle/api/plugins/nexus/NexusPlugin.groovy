@@ -116,12 +116,15 @@ class NexusPlugin implements Plugin<Project> {
         project.tasks.getByName(UPLOAD_ARCHIVES_TASK_NAME).repositories.mavenDeployer() {
             project.gradle.taskGraph.whenReady { TaskExecutionGraph taskGraph ->
                 if(taskGraph.hasTask(UPLOAD_ARCHIVES_TASK_GRAPH_NAME)) {
-                    if(!hasNexusCredentials(project)) {
-                        throw new InvalidUserDataException("You are trying to upload and do not have credentials set. Please set '$NEXUS_USERNAME' and '$NEXUS_PASSWORD'!")
-                    }
+                    Console console = System.console()
 
-                    String nexusUsername = project.property(NEXUS_USERNAME)
-                    String nexusPassword = project.property(NEXUS_PASSWORD)
+                    String nexusUsername = project.hasProperty(NEXUS_USERNAME) ?
+                        project.property(NEXUS_USERNAME) :
+                        console.readLine("\nPlease specify '$NEXUS_USERNAME': ")
+
+                    String nexusPassword = project.hasProperty(NEXUS_PASSWORD) ?
+                        project.property(NEXUS_PASSWORD) :
+                        new String(console.readPassword("\nPlease specify '$NEXUS_PASSWORD': "))
 
                     if(nexusPluginConvention.repositoryUrl) {
                         repository(url: nexusPluginConvention.repositoryUrl) {
@@ -137,16 +140,6 @@ class NexusPlugin implements Plugin<Project> {
                 }
             }
         }
-    }
-
-    /**
-     * Checks if Sonatype username and password have been set.
-     *
-     * @param project Project
-     * @return Flag
-     */
-    private boolean hasNexusCredentials(Project project) {
-        project.hasProperty(NEXUS_USERNAME) && project.hasProperty(NEXUS_PASSWORD)
     }
 
     /**
