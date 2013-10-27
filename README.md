@@ -45,6 +45,9 @@ as `signing` in order to leverage maven's `install` and `uploadArchives` tasks.
 
 The Nexus plugin defines the following convention properties in the `nexus` closure:
 
+* `attachJavadoc`: Adds Javadoc JAR task to project (defaults to true).
+* `attachSources`: Adds sources JAR task to project (defaults to true).
+* `attachTests`: Adds test sources JAR task to project (defaults to false).
 * `sign`: Specifies whether to sign the artifacts using the [signing plugin](http://gradle.org/docs/current/userguide/signing_plugin.html) (defaults to true).
 * `repositoryUrl`: The stable release repository URL (defaults to `https://oss.sonatype.org/service/local/staging/deploy/maven2/`).
 * `snapshotRepositoryUrl`: The stable release repository URL (defaults to `https://oss.sonatype.org/content/repositories/snapshots/`).
@@ -70,17 +73,6 @@ In your `~/.gradle/gradle.properties` you will need to set the mandatory Nexus c
     nexusPassword = yourPassword
 
 If you don't specify one of these properties, the plugin will prompt your for their values in the console.
-
-### JAR tasks
-
-For each of the task mentioned above, the plugin exposes an extension property. With the help of these properties you can
-enable or disable the task for your project.
-
-    nexus {
-        attachSources = false
-        attachTests = true
-        attachJavadoc = false
-    }
 
 ### Example
 
