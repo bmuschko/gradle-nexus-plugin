@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.nexus
 
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.execution.TaskExecutionGraph
@@ -34,6 +33,9 @@ import org.gradle.plugins.signing.SigningPlugin
 class NexusPlugin implements Plugin<Project> {
     static final String SOURCES_JAR_TASK_NAME = 'sourcesJar'
     static final String JAVADOC_JAR_TASK_NAME = 'javadocJar'
+    static final String SOURCES_JAR_TASK_DESCRIPTION  = 'Assembles a jar archive containing the main sources of this project.'
+    static final String JAVADOC_JAR_TASK_DESCRIPTION = 'Assembles a jar archive containing the generated javadoc of this project.'
+    static final String JAR_TASK_GROUP = 'Build'
     static final String UPLOAD_ARCHIVES_TASK_NAME = 'uploadArchives'
     static final String UPLOAD_ARCHIVES_TASK_GRAPH_NAME = ":$UPLOAD_ARCHIVES_TASK_NAME"
     static final String ARCHIVES_CONFIGURATION_NAME = 'archives'
@@ -47,6 +49,7 @@ class NexusPlugin implements Plugin<Project> {
 
         NexusPluginConvention nexusPluginConvention = new NexusPluginConvention()
         project.convention.plugins.nexus = nexusPluginConvention
+        project.extensions.add('nexus', nexusPluginConvention)
 
         configureSourcesJarTask(project)
         configureJavaDocJarTask(project)
@@ -57,14 +60,18 @@ class NexusPlugin implements Plugin<Project> {
     }
 
     private void configureSourcesJarTask(Project project) {
-        Jar sourcesJarTask = project.tasks.create(SOURCES_JAR_TASK_NAME, Jar)
+        Jar sourcesJarTask = project.tasks.add(SOURCES_JAR_TASK_NAME, Jar)
         sourcesJarTask.classifier = 'sources'
+        sourcesJarTask.group = JAR_TASK_GROUP
+        sourcesJarTask.description = SOURCES_JAR_TASK_DESCRIPTION
         sourcesJarTask.from project.sourceSets.main.allSource
     }
 
     private void configureJavaDocJarTask(Project project) {
-        Jar javaDocJarTask = project.tasks.create(JAVADOC_JAR_TASK_NAME, Jar)
+        Jar javaDocJarTask = project.tasks.add(JAVADOC_JAR_TASK_NAME, Jar)
         javaDocJarTask.classifier = 'javadoc'
+        javaDocJarTask.group = JAR_TASK_GROUP
+        javaDocJarTask.description = JAVADOC_JAR_TASK_DESCRIPTION
 
         if(hasGroovyPlugin(project)) {
             javaDocJarTask.from project.groovydoc
