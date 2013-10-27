@@ -17,6 +17,7 @@ package org.gradle.api.plugins.nexus
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.maven.MavenDeployment
 import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaPlugin
@@ -109,10 +110,10 @@ class NexusPlugin implements Plugin<Project> {
 
                     sign project.configurations.archives
 
-                    project.tasks.withType(Upload) {
-                        project.tasks.getByName(UPLOAD_ARCHIVES_TASK_NAME).repositories.mavenDeployer() {
-                            beforeDeployment {
-                                signPom(it)
+                    project.tasks.withType(Upload) { task ->
+                        task.repositories.mavenDeployer() {
+                            beforeDeployment { MavenDeployment deployment ->
+                                signPom(deployment)
                             }
                         }
                     }
