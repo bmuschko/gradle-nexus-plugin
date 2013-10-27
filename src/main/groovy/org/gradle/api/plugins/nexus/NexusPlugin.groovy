@@ -43,48 +43,65 @@ class NexusPlugin implements Plugin<Project> {
         project.plugins.apply(MavenPlugin)
         project.plugins.apply(SigningPlugin)
 
-        NexusPluginConvention nexusPluginConvention = new NexusPluginConvention()
-        project.convention.plugins.nexus = nexusPluginConvention
-        project.extensions.add('nexus', nexusPluginConvention)
+        NexusPluginExtension extension = project.extensions.create('nexus', NexusPluginExtension)
 
-        configureSourcesJarTask(project)
-        configureJavaDocJarTask(project)
-        addArtifacts(project)
-        configureSigning(project, nexusPluginConvention)
+        configureTasks(project, extension)
+        configureSigning(project, extension)
         configurePom(project)
-        configureUpload(project, nexusPluginConvention)
+        configureUpload(project, extension)
     }
 
-    private void configureSourcesJarTask(Project project) {
-        Jar sourcesJarTask = project.task('sourcesJar', type: Jar)
-        sourcesJarTask.classifier = 'sources'
-        sourcesJarTask.group = JAR_TASK_GROUP
-        sourcesJarTask.description = 'Assembles a jar archive containing the main sources of this project.'
-        sourcesJarTask.from project.sourceSets.main.allSource
-    }
-
-    private void configureJavaDocJarTask(Project project) {
-        Jar javaDocJarTask = project.task('javadocJar', type: Jar)
-        javaDocJarTask.classifier = 'javadoc'
-        javaDocJarTask.group = JAR_TASK_GROUP
-        javaDocJarTask.description = 'Assembles a jar archive containing the generated javadoc of this project.'
-
-        if(hasGroovyPlugin(project)) {
-            javaDocJarTask.from project.groovydoc
-        }
-        else if(hasJavaPlugin(project)) {
-            javaDocJarTask.from project.javadoc
-        }
-    }
-
-    private void addArtifacts(Project project) {
-        project.artifacts.add(ARCHIVES_CONFIGURATION_NAME, project.sourcesJar)
-        project.artifacts.add(ARCHIVES_CONFIGURATION_NAME, project.javadocJar)
-    }
-
-    private void configureSigning(Project project, NexusPluginConvention nexusPluginConvention) {
+    private void configureTasks(Project project, NexusPluginExtension extension) {
         project.afterEvaluate {
-            if(nexusPluginConvention.sign) {
+            configureSourcesJarTask(project, extension)
+            configureTestsJarTask(project, extension)
+            configureJavadocJarTask(project, extension)
+        }
+    }
+
+    private void configureSourcesJarTask(Project project, NexusPluginExtension extension) {
+        if(extension.attachSources) {
+            Jar sourcesJarTask = project.task('sourcesJar', type: Jar)
+            sourcesJarTask.classifier = 'sources'
+            sourcesJarTask.group = JAR_TASK_GROUP
+            sourcesJarTask.description = 'Assembles a jar archive containing the main sources of this project.'
+            sourcesJarTask.from project.sourceSets.main.allSource
+            project.artifacts.add(ARCHIVES_CONFIGURATION_NAME, project.sourcesJar)
+        }
+    }
+
+    private void configureTestsJarTask(Project project, NexusPluginExtension extension) {
+        if(extension.attachTests) {
+            Jar testsJarTask = project.task('testsJar', type: Jar)
+            testsJarTask.classifier = 'tests'
+            testsJarTask.group = JAR_TASK_GROUP
+            testsJarTask.description = 'Assembles a jar archive containing the test sources of this project.'
+            testsJarTask.from project.sourceSets.test.output
+            project.artifacts.add(ARCHIVES_CONFIGURATION_NAME, project.testsJar)
+        }
+    }
+
+    private void configureJavadocJarTask(Project project, NexusPluginExtension extension) {
+        if(extension.attachJavadoc) {
+            Jar javaDocJarTask = project.task('javadocJar', type: Jar)
+            javaDocJarTask.classifier = 'javadoc'
+            javaDocJarTask.group = JAR_TASK_GROUP
+            javaDocJarTask.description = 'Assembles a jar archive containing the generated Javadoc API documentation of this project.'
+
+            if(hasGroovyPlugin(project)) {
+                javaDocJarTask.from project.groovydoc
+            }
+            else if(hasJavaPlugin(project)) {
+                javaDocJarTask.from project.javadoc
+            }
+
+            project.artifacts.add(ARCHIVES_CONFIGURATION_NAME, project.javadocJar)
+        }
+    }
+
+    private void configureSigning(Project project, NexusPluginExtension extension) {
+        project.afterEvaluate {
+            if(extension.sign) {
                 project.signing {
                     required {
                         project.gradle.taskGraph.hasTask(UPLOAD_ARCHIVES_TASK_GRAPH_NAME) && !project.version.endsWith('SNAPSHOT')
@@ -115,7 +132,7 @@ class NexusPlugin implements Plugin<Project> {
                             project.tasks.getByName(UPLOAD_ARCHIVES_TASK_NAME).repositories.mavenDeployer()]*.pom
     }
 
-    private void configureUpload(Project project, NexusPluginConvention nexusPluginConvention) {
+    private void configureUpload(Project project, NexusPluginExtension extension) {
         project.tasks.getByName(UPLOAD_ARCHIVES_TASK_NAME).repositories.mavenDeployer() {
             project.gradle.taskGraph.whenReady { TaskExecutionGraph taskGraph ->
                 if(taskGraph.hasTask(UPLOAD_ARCHIVES_TASK_GRAPH_NAME)) {
@@ -129,14 +146,14 @@ class NexusPlugin implements Plugin<Project> {
                                            project.property(NEXUS_PASSWORD) :
                                            new String(console.readPassword('\nPlease specify Nexus password: '))
 
-                    if(nexusPluginConvention.repositoryUrl) {
-                        repository(url: nexusPluginConvention.repositoryUrl) {
+                    if(extension.repositoryUrl) {
+                        repository(url: extension.repositoryUrl) {
                             authentication(userName: nexusUsername, password: nexusPassword)
                         }
                     }
 
-                    if(nexusPluginConvention.snapshotRepositoryUrl) {
-                        snapshotRepository(url: nexusPluginConvention.snapshotRepositoryUrl) {
+                    if(extension.snapshotRepositoryUrl) {
+                        snapshotRepository(url: extension.snapshotRepositoryUrl) {
                             authentication(userName: nexusUsername, password: nexusPassword)
                         }
                     }
