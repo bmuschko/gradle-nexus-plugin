@@ -22,9 +22,9 @@ package org.gradle.api.plugins.nexus
  */
 class NexusPluginExtension {
     Boolean sign = true
-    Boolean attachSources = false
+    Boolean attachSources = true
     Boolean attachTests = false
-    Boolean attachJavadoc = false
+    Boolean attachJavadoc = true
     String repositoryUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
     String snapshotRepositoryUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
 

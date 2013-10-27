@@ -6,7 +6,7 @@ def compatibilityVersion = 1.5
 sourceCompatibility = compatibilityVersion
 targetCompatibility = compatibilityVersion
 group = 'org.gradle.api.plugins'
-version = '0.3'
+version = '0.4'
 
 repositories {
     mavenCentral()
@@ -19,6 +19,24 @@ dependencies {
         exclude module:'groovy-all'
     }
 }
+
+sourceSets {
+    integrationTest {
+        groovy.srcDir file('src/integTest/groovy')
+        resources.srcDir file('src/integTest/resources')
+        compileClasspath = sourceSets.main.output + configurations.testRuntime
+        runtimeClasspath = output + compileClasspath
+    }
+}
+
+task integrationTest(type: Test, dependsOn: test) {
+    description = 'Runs the integration tests.'
+    group = 'verification'
+    testClassesDir = sourceSets.integrationTest.output.classesDir
+    classpath = sourceSets.integrationTest.runtimeClasspath
+}
+
+check.dependsOn integrationTest
 
 jar {
     manifest {
@@ -45,6 +63,10 @@ idea.project {
         def gradleSettings = node.appendNode('component', [name: 'GradleSettings'])
         gradleSettings.appendNode('option', [name: 'SDK_HOME', value: gradle.gradleHomeDir])
     }
+}
+
+idea.module {
+    testSourceDirs += file('src/integTest/groovy')
 }
 
 task wrapper(type: Wrapper) {

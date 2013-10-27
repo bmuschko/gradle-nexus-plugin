@@ -24,17 +24,19 @@ example on how to retrieve it from Maven Central:
         }
 
         dependencies {
-            classpath 'org.gradle.api.plugins:gradle-nexus-plugin:0.3'
+            classpath 'org.gradle.api.plugins:gradle-nexus-plugin:0.4'
         }
     }
 
 ## Tasks
 
-The Nexus plugin defines two tasks:
-* `javadocJar`: Compiles the javadoc and creates a jar from it.
-* `sourcesJar`: Creates a jar containing the sources of the main source set.
+The Nexus plugin can add three tasks to your project:
+* `javadocJar`: Assembles a jar archive containing the generated Javadoc API documentation of this project (added by default).
+* `sourcesJar`: Assembles a jar archive containing the main sources of this project (added by default).
+* `testsJar`: Assembles a jar archive containing the test sources of this project.
 
-The output of both are added to the `archives` configuration.
+The output of all tasks is added to the `archives` configuration. To tell the plugin that any of these tasks should be
+added to the project or removed, you will need to set a specific extension property.
 
 Additionally, it applies the [Maven plugin](http://gradle.org/docs/current/userguide/maven_plugin.html) plugin as well
 as `signing` in order to leverage maven's `install` and `uploadArchives` tasks.
@@ -49,6 +51,8 @@ The Nexus plugin defines the following convention properties in the `nexus` clos
 
 ## Additional configuration
 
+### POM customization
+
 In addition to the convention properties the automatically generated POM file can be modified. To provide the data for
 the POM generation specify the information within the configuration element `modifyPom.project`.
 
@@ -58,12 +62,25 @@ the POM generation specify the information within the configuration element `mod
         }
     }
 
+### Credentials
+
 In your `~/.gradle/gradle.properties` you will need to set the mandatory Nexus credentials required for uploading your artifacts.
 
     nexusUsername = yourUsername
     nexusPassword = yourPassword
 
 If you don't specify one of these properties, the plugin will prompt your for their values in the console.
+
+### JAR tasks
+
+For each of the task mentioned above, the plugin exposes an extension property. With the help of these properties you can
+enable or disable the task for your project.
+
+    nexus {
+        attachSources = false
+        attachTests = true
+        attachJavadoc = false
+    }
 
 ### Example
 
@@ -99,6 +116,9 @@ If you don't specify one of these properties, the plugin will prompt your for th
     }
 
     nexus {
+        attachSources = false
+        attachTests = true
+        attachJavadoc = false
         sign = true
         repositoryUrl = 'http://localhost:8081/nexus/content/repositories/internal/'
         snapshotRepositoryUrl = 'http://localhost:8081/nexus/content/repositories/internal-snapshots/'
