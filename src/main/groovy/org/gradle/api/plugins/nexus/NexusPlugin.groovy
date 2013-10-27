@@ -31,10 +31,6 @@ import org.gradle.plugins.signing.SigningPlugin
  * @author Benjamin Muschko
  */
 class NexusPlugin implements Plugin<Project> {
-    static final String SOURCES_JAR_TASK_NAME = 'sourcesJar'
-    static final String JAVADOC_JAR_TASK_NAME = 'javadocJar'
-    static final String SOURCES_JAR_TASK_DESCRIPTION  = 'Assembles a jar archive containing the main sources of this project.'
-    static final String JAVADOC_JAR_TASK_DESCRIPTION = 'Assembles a jar archive containing the generated javadoc of this project.'
     static final String JAR_TASK_GROUP = 'Build'
     static final String UPLOAD_ARCHIVES_TASK_NAME = 'uploadArchives'
     static final String UPLOAD_ARCHIVES_TASK_GRAPH_NAME = ":$UPLOAD_ARCHIVES_TASK_NAME"
@@ -60,18 +56,18 @@ class NexusPlugin implements Plugin<Project> {
     }
 
     private void configureSourcesJarTask(Project project) {
-        Jar sourcesJarTask = project.tasks.add(SOURCES_JAR_TASK_NAME, Jar)
+        Jar sourcesJarTask = project.task('sourcesJar', type: Jar)
         sourcesJarTask.classifier = 'sources'
         sourcesJarTask.group = JAR_TASK_GROUP
-        sourcesJarTask.description = SOURCES_JAR_TASK_DESCRIPTION
+        sourcesJarTask.description = 'Assembles a jar archive containing the main sources of this project.'
         sourcesJarTask.from project.sourceSets.main.allSource
     }
 
     private void configureJavaDocJarTask(Project project) {
-        Jar javaDocJarTask = project.tasks.add(JAVADOC_JAR_TASK_NAME, Jar)
+        Jar javaDocJarTask = project.task('javadocJar', type: Jar)
         javaDocJarTask.classifier = 'javadoc'
         javaDocJarTask.group = JAR_TASK_GROUP
-        javaDocJarTask.description = JAVADOC_JAR_TASK_DESCRIPTION
+        javaDocJarTask.description = 'Assembles a jar archive containing the generated javadoc of this project.'
 
         if(hasGroovyPlugin(project)) {
             javaDocJarTask.from project.groovydoc
