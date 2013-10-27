@@ -57,6 +57,8 @@ In your `~/.gradle/gradle.properties` you will need to set the mandatory Nexus c
     nexusUsername = yourUsername
     nexusPassword = yourPassword
 
+If you don't specify one of these properties, the plugin will prompt your for their values in the console.
+
 ### Example
 
     modifyPom {
