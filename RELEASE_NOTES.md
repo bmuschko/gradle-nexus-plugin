@@ -1,3 +1,12 @@
+### Version 0.4 (October 27, 2013)
+
+* If username and password are not specified, then prompt for them - [Pull request 14](https://github.com/bmuschko/gradle-nexus-plugin/pull/14).
+* Add a group and description to the JAR tasks - [Pull request 6](https://github.com/bmuschko/gradle-nexus-plugin/pull/6).
+* Only sign POM file once - [Pull request 5](https://github.com/bmuschko/gradle-nexus-plugin/pull/5).
+* Make JAR tasks configurable - [Pull request 4](https://github.com/bmuschko/gradle-nexus-plugin/pull/4).
+* Added integration tests.
+* Publish the plugin to Bintray.
+
 ### Version 0.3 (August 17, 2013)
 
 * Fixed deprecation messages.

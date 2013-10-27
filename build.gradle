@@ -1,6 +1,17 @@
+buildscript {
+    repositories {
+        maven { url 'http://jcenter.bintray.com' }
+    }
+
+    dependencies {
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.3'
+    }
+}
+
 apply plugin: 'groovy'
 apply plugin: 'idea'
-apply plugin: 'maven'
+apply plugin: 'maven-publish'
+apply plugin: 'bintray'
 
 def compatibilityVersion = 1.5
 sourceCompatibility = compatibilityVersion
@@ -15,7 +26,7 @@ repositories {
 dependencies {
     compile localGroovy()
     compile gradleApi()
-    testCompile("org.spockframework:spock-core:0.7-groovy-1.8"){
+    testCompile("org.spockframework:spock-core:0.7-groovy-1.8") {
         exclude module:'groovy-all'
     }
 }
@@ -69,17 +80,13 @@ idea.module {
     testSourceDirs += file('src/integTest/groovy')
 }
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '1.7'
-}
-
 task sourcesJar(type: Jar) {
     classifier 'sources'
     from sourceSets.main.allSource
 }
 
 task groovydocJar(type: Jar, dependsOn: groovydoc) {
-    classifier 'javadoc'
+    classifier 'groovydoc'
     from groovydoc.destinationDir
 }
 
@@ -88,63 +95,51 @@ artifacts {
     archives groovydocJar
 }
 
-ext.pomConfiguration = {
-    name 'Gradle Sonatype Nexus plugin'
-    description 'Gradle plugin for configuring and upload artifacts to Sonatype Nexus.'
-    url 'https://github.com/bmuschko/gradle-nexus-plugin'
-    inceptionYear '2012'
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact groovydocJar
 
-    scm {
-        url 'https://github.com/bmuschko/gradle-nexus-plugin'
-        connection 'scm:https://bmuschko@github.com/bmuschko/gradle-nexus-plugin.git'
-        developerConnection 'scm:git://github.com/bmuschko/gradle-nexus-plugin.git'
-    }
+            pom.withXml {
+                def root = asNode()
+                root.appendNode('name', 'Gradle Sonatype Nexus plugin')
+                root.appendNode('description', 'Gradle plugin for configuring and upload artifacts to Sonatype Nexus.')
+                root.appendNode('inceptionYear', '2012')
 
-    licenses {
-        license {
-            name 'The Apache Software License, Version 2.0'
-            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-            distribution 'repo'
-        }
-    }
+                def scm = root.appendNode('scm')
+                scm.appendNode('url', 'https://github.com/bmuschko/gradle-nexus-plugin')
+                scm.appendNode('connection', 'scm:https://bmuschko@github.com/bmuschko/gradle-nexus-plugin.git')
+                scm.appendNode('developerConnection', 'scm:git://github.com/bmuschko/gradle-nexus-plugin.git')
 
-    developers {
-        developer {
-            id 'bmuschko'
-            name 'Benjamin Muschko'
-            email 'benjamin.muschko@gmail.com'
+                def license = root.appendNode('licenses').appendNode('license')
+                license.appendNode('name', 'The Apache Software License, Version 2.0')
+                license.appendNode('url', 'http://www.apache.org/licenses/LICENSE-2.0.txt')
+                license.appendNode('distribution', 'repo')
+
+                def developers = root.appendNode('developers')
+                def bmuschko = developers.appendNode('developer')
+                bmuschko.appendNode('id', 'bmuschko')
+                bmuschko.appendNode('name', 'Benjamin Muschko')
+                bmuschko.appendNode('email', 'benjamin.muschko@gmail.com')
+            }
         }
     }
 }
 
-install {
-    repositories.mavenInstaller {
-        pom.project pomConfiguration
+bintray {
+    user = project.hasProperty('bintrayUser') ? project.getProperty('bintrayUser') : null
+    key =  project.hasProperty('bintrayKey') ? project.getProperty('bintrayKey') : null
+    publications = ['mavenJava']
+
+    pkg {
+        repo = 'gradle-plugins'
+        name = 'gradle-nexus-plugin'
+        licenses = ['Apache-2.0']
     }
 }
 
-if(hasProperty('nexusUsername') && hasProperty('nexusPassword')) {
-    apply plugin: 'signing'
-
-    signing {
-        required { gradle.taskGraph.hasTask(uploadArchives) && !version.endsWith('SNAPSHOT') }
-        sign configurations.archives
-    }
-
-    uploadArchives {
-        repositories.mavenDeployer {
-            beforeDeployment { deployment ->
-                signing.signPom(deployment)
-            }
-
-            name = 'mavenCentralReleaseDeployer'
-
-            repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
-                authentication(userName: nexusUsername, password: nexusPassword)
-                releases(updatePolicy: 'always')
-            }
-
-            pom.project pomConfiguration
-        }
-    }
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.7'
 }
