@@ -72,10 +72,10 @@ apply plugin: org.gradle.api.plugins.nexus.NexusPlugin
 
         then:
         Task sourcesJarTask = project.tasks.find { task -> task.name == 'sourcesJar' }
-        sourcesJarTask != null
+        sourcesJarTask
         sourcesJarTask.description == 'Assembles a jar archive containing the main sources of this project.'
         Task javadocJarTask = project.tasks.find { task -> task.name == 'javadocJar' }
-        javadocJarTask != null
+        javadocJarTask
         javadocJarTask.description == 'Assembles a jar archive containing the generated Javadoc API documentation of this project.'
         !project.tasks.find { task -> task.name == 'testsJar' }
     }
@@ -86,10 +86,10 @@ apply plugin: org.gradle.api.plugins.nexus.NexusPlugin
 
         then:
         Task sourcesJarTask = project.tasks.find { task -> task.name == 'sourcesJar' }
-        sourcesJarTask != null
+        sourcesJarTask
         sourcesJarTask.description == 'Assembles a jar archive containing the main sources of this project.'
         Task javadocJarTask = project.tasks.find { task -> task.name == 'javadocJar' }
-        javadocJarTask != null
+        javadocJarTask
         javadocJarTask.description == 'Assembles a jar archive containing the generated Javadoc API documentation of this project.'
         !project.tasks.find { task -> task.name == 'testsJar' }
     }
@@ -105,13 +105,13 @@ nexus {
 
         then:
         Task sourcesJarTask = project.tasks.find { task -> task.name == 'sourcesJar' }
-        sourcesJarTask != null
+        sourcesJarTask
         sourcesJarTask.description == 'Assembles a jar archive containing the main sources of this project.'
         Task javadocJarTask = project.tasks.find { task -> task.name == 'javadocJar' }
-        javadocJarTask != null
+        javadocJarTask
         javadocJarTask.description == 'Assembles a jar archive containing the generated Javadoc API documentation of this project.'
         Task testsJarTask = project.tasks.find { task -> task.name == 'testsJar'}
-        testsJarTask != null
+        testsJarTask
         testsJarTask.description == 'Assembles a jar archive containing the test sources of this project.'
     }
 
@@ -196,9 +196,12 @@ nexus {
     }
 
     def "Installs all configured JARs and metadata for release version"() {
-        when:
+        setup:
         def projectCoordinates = [group: 'org.gradle.mygroup', name: 'integTest', version: '1.0']
+        File installationDir = new File(M2_HOME_DIR, createInstallationDir(projectCoordinates))
+        deleteMavenLocalInstallationDir(installationDir)
 
+        when:
         buildFile << """
 version = '$projectCoordinates.version'
 group = '$projectCoordinates.group'
@@ -210,7 +213,6 @@ nexus {
         runTasks(integTestDir, MavenPlugin.INSTALL_TASK_NAME)
 
         then:
-        File installationDir = new File(M2_HOME_DIR, createInstallationDir(projectCoordinates))
         def repoFileNames = installationDir.listFiles()*.name
         repoFileNames.find { it ==~ "${projectCoordinates.name}-${projectCoordinates.version}.jar" }
         repoFileNames.find { it ==~ "${projectCoordinates.name}-${projectCoordinates.version}.pom" }
@@ -220,9 +222,12 @@ nexus {
     }
 
     def "Installs all configured JARs and metadata for snapshot version"() {
-        when:
+        setup:
         def projectCoordinates = [group: 'org.gradle.mygroup', name: 'integTest', version: '1.0-SNAPSHOT']
+        File installationDir = new File(M2_HOME_DIR, createInstallationDir(projectCoordinates))
+        deleteMavenLocalInstallationDir(installationDir)
 
+        when:
         buildFile << """
 version = '$projectCoordinates.version'
 group = '$projectCoordinates.group'
@@ -231,16 +236,25 @@ nexus {
     attachTests = true
 }
 """
-        GradleProject project = runTasks(integTestDir, MavenPlugin.INSTALL_TASK_NAME)
+        runTasks(integTestDir, MavenPlugin.INSTALL_TASK_NAME)
 
         then:
-        File installationDir = new File(M2_HOME_DIR, createInstallationDir(projectCoordinates))
         def repoFileNames = installationDir.listFiles()*.name
-        repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\.jar" }
-        repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\.pom" }
-        repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-javadoc.jar" }
-        repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-sources.jar" }
-        repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-tests.jar" }
+        repoFileNames.find { it ==~ "${projectCoordinates.name}-${projectCoordinates.version}.jar" }
+        repoFileNames.find { it ==~ "${projectCoordinates.name}-${projectCoordinates.version}.pom" }
+        repoFileNames.find { it ==~ "${projectCoordinates.name}-${projectCoordinates.version}-javadoc.jar" }
+        repoFileNames.find { it ==~ "${projectCoordinates.name}-${projectCoordinates.version}-sources.jar" }
+        repoFileNames.find { it ==~ "${projectCoordinates.name}-${projectCoordinates.version}-tests.jar" }
+    }
+
+    private void deleteMavenLocalInstallationDir(File installationDir) {
+        if(installationDir.exists()) {
+            boolean success = installationDir.deleteDir()
+
+            if(!success) {
+                fail("Unable to delete existing Maven Local repository directory '$installationDir.canonicalPath'.")
+            }
+        }
     }
 
     private String createInstallationDir(projectCoordinates) {
