@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins.nexus
 
+import org.gradle.api.plugins.MavenPlugin
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
@@ -25,6 +26,7 @@ import spock.lang.Specification
 import static org.spockframework.util.Assert.fail
 
 class NexusPluginSpec extends Specification {
+    final static M2_HOME_DIR = new File(System.properties['user.home'], '.m2/repository')
     File integTestDir
     File buildFile
 
@@ -47,6 +49,10 @@ buildscript {
         classpath files('../classes/main')
     }
 }
+
+apply plugin: 'java'
+apply plugin: org.gradle.api.plugins.nexus.NexusPlugin
+
 """
     }
 
@@ -62,10 +68,6 @@ buildscript {
 
     def "Adds sources and Javadoc JAR tasks by default for Java project"() {
         when:
-        buildFile << """
-apply plugin: 'java'
-apply plugin: org.gradle.api.plugins.nexus.NexusPlugin
-"""
         GradleProject project = runTasks(integTestDir, 'tasks')
 
         then:
@@ -80,10 +82,6 @@ apply plugin: org.gradle.api.plugins.nexus.NexusPlugin
 
     def "Adds sources and Javadoc JAR tasks by default for Groovy project"() {
         when:
-        buildFile << """
-apply plugin: 'java'
-apply plugin: org.gradle.api.plugins.nexus.NexusPlugin
-"""
         GradleProject project = runTasks(integTestDir, 'tasks')
 
         then:
@@ -99,9 +97,6 @@ apply plugin: org.gradle.api.plugins.nexus.NexusPlugin
     def "Adds tests JAR task if configured"() {
         when:
         buildFile << """
-apply plugin: 'java'
-apply plugin: org.gradle.api.plugins.nexus.NexusPlugin
-
 nexus {
     attachTests = true
 }
@@ -123,9 +118,6 @@ nexus {
     def "Disables additional JAR creation"() {
         when:
         buildFile << """
-apply plugin: 'java'
-apply plugin: org.gradle.api.plugins.nexus.NexusPlugin
-
 nexus {
     attachSources = false
     attachJavadoc = false
@@ -142,9 +134,6 @@ nexus {
     def "Creates all configured JARs"() {
         when:
         buildFile << """
-apply plugin: 'java'
-apply plugin: org.gradle.api.plugins.nexus.NexusPlugin
-
 nexus {
     attachTests = true
 }
@@ -163,9 +152,6 @@ nexus {
     def "Uploads all configured JARs and metadata for release version"() {
         when:
         buildFile << """
-apply plugin: 'java'
-apply plugin: org.gradle.api.plugins.nexus.NexusPlugin
-
 version = '1.0'
 group = 'org.gradle.mygroup'
 
@@ -189,9 +175,6 @@ nexus {
     def "Uploads all configured JARs and metadata for snapshot version"() {
         when:
         buildFile << """
-apply plugin: 'java'
-apply plugin: org.gradle.api.plugins.nexus.NexusPlugin
-
 version = '1.0-SNAPSHOT'
 group = 'org.gradle.mygroup'
 
@@ -210,6 +193,58 @@ nexus {
         repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-javadoc.jar" }
         repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-sources.jar" }
         repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-tests.jar" }
+    }
+
+    def "Installs all configured JARs and metadata for release version"() {
+        when:
+        def projectCoordinates = [group: 'org.gradle.mygroup', name: 'integTest', version: '1.0']
+
+        buildFile << """
+version = '$projectCoordinates.version'
+group = '$projectCoordinates.group'
+
+nexus {
+    attachTests = true
+}
+"""
+        runTasks(integTestDir, MavenPlugin.INSTALL_TASK_NAME)
+
+        then:
+        File installationDir = new File(M2_HOME_DIR, createInstallationDir(projectCoordinates))
+        def repoFileNames = installationDir.listFiles()*.name
+        repoFileNames.find { it ==~ "${projectCoordinates.name}-${projectCoordinates.version}.jar" }
+        repoFileNames.find { it ==~ "${projectCoordinates.name}-${projectCoordinates.version}.pom" }
+        repoFileNames.find { it ==~ "${projectCoordinates.name}-${projectCoordinates.version}-javadoc.jar" }
+        repoFileNames.find { it ==~ "${projectCoordinates.name}-${projectCoordinates.version}-sources.jar" }
+        repoFileNames.find { it ==~ "${projectCoordinates.name}-${projectCoordinates.version}-tests.jar" }
+    }
+
+    def "Installs all configured JARs and metadata for snapshot version"() {
+        when:
+        def projectCoordinates = [group: 'org.gradle.mygroup', name: 'integTest', version: '1.0-SNAPSHOT']
+
+        buildFile << """
+version = '$projectCoordinates.version'
+group = '$projectCoordinates.group'
+
+nexus {
+    attachTests = true
+}
+"""
+        GradleProject project = runTasks(integTestDir, MavenPlugin.INSTALL_TASK_NAME)
+
+        then:
+        File installationDir = new File(M2_HOME_DIR, createInstallationDir(projectCoordinates))
+        def repoFileNames = installationDir.listFiles()*.name
+        repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\.jar" }
+        repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\.pom" }
+        repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-javadoc.jar" }
+        repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-sources.jar" }
+        repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-tests.jar" }
+    }
+
+    private String createInstallationDir(projectCoordinates) {
+        "${projectCoordinates.group.replaceAll('\\.', '/')}/$projectCoordinates.name/$projectCoordinates.version"
     }
 
     private GradleProject runTasks(File projectDir, String... tasks) {
