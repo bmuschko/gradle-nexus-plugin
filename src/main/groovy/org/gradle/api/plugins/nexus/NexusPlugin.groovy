@@ -143,11 +143,11 @@ class NexusPlugin implements Plugin<Project> {
 
                     String nexusUsername = project.hasProperty(NEXUS_USERNAME) ?
                                            project.property(NEXUS_USERNAME) :
-                                           console.readLine('\nPlease specify Nexus username: ')
+                                           console.readLine('\nPlease specify username: ')
 
                     String nexusPassword = project.hasProperty(NEXUS_PASSWORD) ?
                                            project.property(NEXUS_PASSWORD) :
-                                           new String(console.readPassword('\nPlease specify Nexus password: '))
+                                           new String(console.readPassword('\nPlease specify password: '))
 
                     if(extension.repositoryUrl) {
                         repository(url: extension.repositoryUrl) {
