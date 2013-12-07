@@ -1,3 +1,9 @@
+### Version 0.5 (December 7, 2013)
+
+* Make console input messages more generic - [Issue 16](https://github.com/bmuschko/gradle-nexus-plugin/issues/16).
+* Fix configuration for `install` task - [Issue 7](https://github.com/bmuschko/gradle-nexus-plugin/issues/7).
+* Update to Gradle Wrapper 1.9.
+
 ### Version 0.4 (October 27, 2013)
 
 * If username and password are not specified, then prompt for them - [Pull request 14](https://github.com/bmuschko/gradle-nexus-plugin/pull/14).
