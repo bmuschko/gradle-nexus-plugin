@@ -1,3 +1,7 @@
+### Version 0.5.1 (December 11, 2013)
+
+* Fix signing the POMs - [Issue 17](https://github.com/bmuschko/gradle-nexus-plugin/issues/17).
+
 ### Version 0.5 (December 7, 2013)
 
 * Make console input messages more generic - [Issue 16](https://github.com/bmuschko/gradle-nexus-plugin/issues/16).

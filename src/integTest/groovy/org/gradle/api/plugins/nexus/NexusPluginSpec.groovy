@@ -149,7 +149,7 @@ nexus {
         assembledFileNames.find { it ==~ "${project.name}-tests.jar" }
     }
 
-    def "Uploads all configured JARs and metadata for release version"() {
+    def "Uploads all configured JARs, metadata and signature artifacts for release version"() {
         when:
         buildFile << """
 version = '1.0'
@@ -166,13 +166,47 @@ nexus {
         File repoDir = new File(integTestDir, 'repo/org/gradle/mygroup/integTest/1.0')
         def repoFileNames = repoDir.listFiles()*.name
         repoFileNames.find { it ==~ "${project.name}-1.0.jar" }
+        repoFileNames.find { it ==~ "${project.name}-1.0.jar.asc" }
         repoFileNames.find { it ==~ "${project.name}-1.0.pom" }
+        repoFileNames.find { it ==~ "${project.name}-1.0.pom.asc" }
         repoFileNames.find { it ==~ "${project.name}-1.0-javadoc.jar" }
+        repoFileNames.find { it ==~ "${project.name}-1.0-javadoc.jar.asc" }
         repoFileNames.find { it ==~ "${project.name}-1.0-sources.jar" }
+        repoFileNames.find { it ==~ "${project.name}-1.0-sources.jar.asc" }
         repoFileNames.find { it ==~ "${project.name}-1.0-tests.jar" }
+        repoFileNames.find { it ==~ "${project.name}-1.0-tests.jar.asc" }
     }
 
-    def "Uploads all configured JARs and metadata for snapshot version"() {
+    def "Uploads all configured JARs and metadata without signature artifacts for release version"() {
+        when:
+            buildFile << """
+version = '1.0'
+group = 'org.gradle.mygroup'
+
+nexus {
+    attachTests = true
+    repositoryUrl = 'file://$integTestDir.canonicalPath/repo'
+    sign = false
+}
+"""
+            GradleProject project = runTasks(integTestDir, 'uploadArchives')
+
+        then:
+            File repoDir = new File(integTestDir, 'repo/org/gradle/mygroup/integTest/1.0')
+            def repoFileNames = repoDir.listFiles()*.name
+            repoFileNames.find { it ==~ "${project.name}-1.0.jar" }
+            !repoFileNames.find { it ==~ "${project.name}-1.0.jar.asc" }
+            repoFileNames.find { it ==~ "${project.name}-1.0.pom" }
+            !repoFileNames.find { it ==~ "${project.name}-1.0.pom.asc" }
+            repoFileNames.find { it ==~ "${project.name}-1.0-javadoc.jar" }
+            !repoFileNames.find { it ==~ "${project.name}-1.0-javadoc.jar.asc" }
+            repoFileNames.find { it ==~ "${project.name}-1.0-sources.jar" }
+            !repoFileNames.find { it ==~ "${project.name}-1.0-sources.jar.asc" }
+            repoFileNames.find { it ==~ "${project.name}-1.0-tests.jar" }
+            !repoFileNames.find { it ==~ "${project.name}-1.0-tests.jar.asc" }
+    }
+
+    def "Uploads all configured JARs, metadata and signature artifacts for snapshot version"() {
         when:
         buildFile << """
 version = '1.0-SNAPSHOT'
@@ -189,10 +223,44 @@ nexus {
         File repoDir = new File(integTestDir, 'repo/org/gradle/mygroup/integTest/1.0-SNAPSHOT')
         def repoFileNames = repoDir.listFiles()*.name
         repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\.jar" }
+        repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\.jar.asc" }
         repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\.pom" }
+        repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\.pom.asc" }
         repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-javadoc.jar" }
+        repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-javadoc.jar.asc" }
         repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-sources.jar" }
+        repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-sources.jar.asc" }
         repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-tests.jar" }
+        repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-tests.jar.asc" }
+    }
+
+    def "Uploads all configured JARs and metadata without signature artifacts for snapshot version"() {
+        when:
+            buildFile << """
+version = '1.0-SNAPSHOT'
+group = 'org.gradle.mygroup'
+
+nexus {
+    attachTests = true
+    snapshotRepositoryUrl = 'file://$integTestDir.canonicalPath/repo'
+    sign = false
+}
+"""
+            GradleProject project = runTasks(integTestDir, 'uploadArchives')
+
+        then:
+            File repoDir = new File(integTestDir, 'repo/org/gradle/mygroup/integTest/1.0-SNAPSHOT')
+            def repoFileNames = repoDir.listFiles()*.name
+            repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\.jar" }
+            !repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\.jar.asc" }
+            repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\.pom" }
+            !repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\.pom.asc" }
+            repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-javadoc.jar" }
+            !repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-javadoc.jar.asc" }
+            repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-sources.jar" }
+            !repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-sources.jar.asc" }
+            repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-tests.jar" }
+            !repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-tests.jar.asc" }
     }
 
     def "Installs all configured JARs and metadata for release version"() {

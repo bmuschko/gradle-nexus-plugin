@@ -110,7 +110,8 @@ class NexusPlugin implements Plugin<Project> {
 
                     sign project.configurations.archives
 
-                    def uploadTasks = project.tasks.withType(Upload).matching { it.path == UPLOAD_ARCHIVES_TASK_NAME }
+
+                    def uploadTasks = project.tasks.withType(Upload).matching { it.path == UPLOAD_ARCHIVES_TASK_GRAPH_NAME }
 
                     uploadTasks.each { task ->
                         task.repositories.mavenDeployer() {
