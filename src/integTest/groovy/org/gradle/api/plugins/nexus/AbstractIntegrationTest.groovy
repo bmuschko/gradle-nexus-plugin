@@ -35,6 +35,10 @@ abstract class AbstractIntegrationTest extends Specification {
     def setup() {
         integTestDir = new File('build/integTest')
 
+        if(!integTestDir.deleteDir()) {
+            fail('Unable to delete integration test directory.')
+        }
+
         if(!integTestDir.mkdirs()) {
             fail('Unable to create integration test directory.')
         }
@@ -61,10 +65,6 @@ apply plugin: org.gradle.api.plugins.nexus.NexusPlugin
     def cleanup() {
         if(!buildFile.delete()) {
             fail('Unable to delete Gradle build script.')
-        }
-
-        if(!integTestDir.deleteDir()) {
-            fail('Unable to delete integration test directory.')
         }
     }
 

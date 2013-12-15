@@ -43,19 +43,19 @@ class NexusPlugin implements Plugin<Project> {
 
         NexusPluginExtension extension = project.extensions.create('nexus', NexusPluginExtension)
 
-        configureTasks(project, extension)
-        configureSigning(project, extension)
-        configurePom(project)
-        configureUpload(project, extension)
+        project.afterEvaluate {
+            configureTasks(project, extension)
+            configureSigning(project, extension)
+            configurePom(project)
+            configureUpload(project, extension)
+        }
     }
 
     private void configureTasks(Project project, NexusPluginExtension extension) {
-        project.afterEvaluate {
-            changeInstallTaskConfiguration(project, extension)
-            configureSourcesJarTask(project, extension)
-            configureTestsJarTask(project, extension)
-            configureJavadocJarTask(project, extension)
-        }
+        changeInstallTaskConfiguration(project, extension)
+        configureSourcesJarTask(project, extension)
+        configureTestsJarTask(project, extension)
+        configureJavadocJarTask(project, extension)
     }
 
     private void changeInstallTaskConfiguration(Project project, NexusPluginExtension extension) {
@@ -110,20 +110,18 @@ class NexusPlugin implements Plugin<Project> {
     }
 
     private void configureSigning(Project project, NexusPluginExtension extension) {
-        project.afterEvaluate {
-            if(extension.sign) {
-                project.signing {
-                    required {
-                        project.gradle.taskGraph.hasTask(extension.uploadTaskPath) && !project.version.endsWith('SNAPSHOT')
-                    }
+        if(extension.sign) {
+            project.signing {
+                required {
+                    project.gradle.taskGraph.hasTask(extension.uploadTaskPath) && !project.version.endsWith('SNAPSHOT')
+                }
 
-                    sign project.configurations[extension.configuration]
+                sign project.configurations[extension.configuration]
 
 
-                    project.gradle.taskGraph.whenReady {
-                        signPomForUpload(project, extension)
-                        signInstallPom(project)
-                    }
+                project.gradle.taskGraph.whenReady {
+                    signPomForUpload(project, extension)
+                    signInstallPom(project)
                 }
             }
         }
@@ -154,40 +152,36 @@ class NexusPlugin implements Plugin<Project> {
     }
 
     private void configurePom(Project project) {
-        project.afterEvaluate {
-            project.ext.modifyPom = { Closure modification ->
-                project.poms.each {
-                    it.whenConfigured { project.configure(it, modification) }
-                }
+        project.ext.modifyPom = { Closure modification ->
+            project.poms.each {
+                it.whenConfigured { project.configure(it, modification) }
             }
         }
     }
 
     private void configureUpload(Project project, NexusPluginExtension extension) {
-        project.afterEvaluate {
-            project.tasks.getByName(extension.uploadTaskName).repositories.mavenDeployer() {
-                project.gradle.taskGraph.whenReady { TaskExecutionGraph taskGraph ->
-                    if(taskGraph.hasTask(extension.uploadTaskPath)) {
-                        Console console = System.console()
+        project.tasks.getByName(extension.uploadTaskName).repositories.mavenDeployer() {
+            project.gradle.taskGraph.whenReady { TaskExecutionGraph taskGraph ->
+                if(taskGraph.hasTask(extension.uploadTaskPath)) {
+                    Console console = System.console()
 
-                        String nexusUsername = project.hasProperty(NEXUS_USERNAME) ?
-                                               project.property(NEXUS_USERNAME) :
-                                               console.readLine('\nPlease specify username: ')
+                    String nexusUsername = project.hasProperty(NEXUS_USERNAME) ?
+                                           project.property(NEXUS_USERNAME) :
+                                           console.readLine('\nPlease specify username: ')
 
-                        String nexusPassword = project.hasProperty(NEXUS_PASSWORD) ?
-                                               project.property(NEXUS_PASSWORD) :
-                                               new String(console.readPassword('\nPlease specify password: '))
+                    String nexusPassword = project.hasProperty(NEXUS_PASSWORD) ?
+                                           project.property(NEXUS_PASSWORD) :
+                                           new String(console.readPassword('\nPlease specify password: '))
 
-                        if(extension.repositoryUrl) {
-                            repository(url: extension.repositoryUrl) {
-                                authentication(userName: nexusUsername, password: nexusPassword)
-                            }
+                    if(extension.repositoryUrl) {
+                        repository(url: extension.repositoryUrl) {
+                            authentication(userName: nexusUsername, password: nexusPassword)
                         }
+                    }
 
-                        if(extension.snapshotRepositoryUrl) {
-                            snapshotRepository(url: extension.snapshotRepositoryUrl) {
-                                authentication(userName: nexusUsername, password: nexusPassword)
-                            }
+                    if(extension.snapshotRepositoryUrl) {
+                        snapshotRepository(url: extension.snapshotRepositoryUrl) {
+                            authentication(userName: nexusUsername, password: nexusPassword)
                         }
                     }
                 }
