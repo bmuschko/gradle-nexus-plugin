@@ -15,12 +15,16 @@
  */
 package org.gradle.api.plugins.nexus
 
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.Dependency
+
 /**
  * Defines Sonatype Nexus plugin convention.
  *
  * @author Benjamin Muschko
  */
 class NexusPluginExtension {
+    String configuration = Dependency.ARCHIVES_CONFIGURATION
     Boolean sign = true
     Boolean attachSources = true
     Boolean attachTests = false
@@ -31,5 +35,21 @@ class NexusPluginExtension {
     def nexus(Closure closure) {
         closure.delegate = this
         closure()
+    }
+
+    String getUploadTaskName() {
+        "upload${configuration.capitalize()}"
+    }
+
+    String getUploadTaskPath() {
+        ":$uploadTaskName"
+    }
+
+    void setConfiguration(config) {
+        configuration = config instanceof Configuration ? config.name : config
+    }
+
+    boolean usesStandardConfiguration() {
+        configuration == Dependency.ARCHIVES_CONFIGURATION
     }
 }

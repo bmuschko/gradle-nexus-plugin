@@ -131,7 +131,7 @@ nexus {
         !project.tasks.find { task -> task.name == 'testsJar'}
     }
 
-    def "Creates all configured JARs"() {
+    def "Creates all configured JARs for default configuration"() {
         when:
         buildFile << """
 nexus {
@@ -142,14 +142,54 @@ nexus {
 
         then:
         File libsDir = new File(integTestDir, 'build/libs')
-        def assembledFileNames = libsDir.listFiles()*.name
-        assembledFileNames.find { it ==~ "${project.name}.jar" }
-        assembledFileNames.find { it ==~ "${project.name}-javadoc.jar" }
-        assembledFileNames.find { it ==~ "${project.name}-sources.jar" }
-        assembledFileNames.find { it ==~ "${project.name}-tests.jar" }
+        def expectedFilenames = ["${project.name}.jar", "${project.name}-javadoc.jar", "${project.name}-sources.jar",
+                                 "${project.name}-tests.jar"]
+        assertExistingFiles(libsDir, expectedFilenames)
     }
 
-    def "Uploads all configured JARs, metadata and signature artifacts for release version"() {
+    def "Creates all configured JARs for custom configuration as Configuration type"() {
+        when:
+        buildFile << """
+configurations {
+    myConfig
+}
+
+nexus {
+    attachTests = true
+    configuration = configurations.myConfig
+}
+"""
+        GradleProject project = runTasks(integTestDir, 'assemble')
+
+        then:
+        File libsDir = new File(integTestDir, 'build/libs')
+        def expectedFilenames = ["${project.name}.jar", "${project.name}-javadoc.jar", "${project.name}-sources.jar",
+                                 "${project.name}-tests.jar"]
+        assertExistingFiles(libsDir, expectedFilenames)
+    }
+
+    def "Creates all configured JARs for custom configuration defined as String type"() {
+        when:
+        buildFile << """
+configurations {
+    myConfig
+}
+
+nexus {
+    attachTests = true
+    configuration = 'myConfig'
+}
+"""
+        GradleProject project = runTasks(integTestDir, 'assemble')
+
+        then:
+        File libsDir = new File(integTestDir, 'build/libs')
+        def expectedFilenames = ["${project.name}.jar", "${project.name}-javadoc.jar", "${project.name}-sources.jar",
+                                 "${project.name}-tests.jar"]
+        assertExistingFiles(libsDir, expectedFilenames)
+    }
+
+    def "Uploads all configured JARs, metadata and signature artifacts for release version with default configuration"() {
         when:
         buildFile << """
 version = '1.0'
@@ -164,22 +204,47 @@ nexus {
 
         then:
         File repoDir = new File(integTestDir, 'repo/org/gradle/mygroup/integTest/1.0')
-        def repoFileNames = repoDir.listFiles()*.name
-        repoFileNames.find { it ==~ "${project.name}-1.0.jar" }
-        repoFileNames.find { it ==~ "${project.name}-1.0.jar.asc" }
-        repoFileNames.find { it ==~ "${project.name}-1.0.pom" }
-        repoFileNames.find { it ==~ "${project.name}-1.0.pom.asc" }
-        repoFileNames.find { it ==~ "${project.name}-1.0-javadoc.jar" }
-        repoFileNames.find { it ==~ "${project.name}-1.0-javadoc.jar.asc" }
-        repoFileNames.find { it ==~ "${project.name}-1.0-sources.jar" }
-        repoFileNames.find { it ==~ "${project.name}-1.0-sources.jar.asc" }
-        repoFileNames.find { it ==~ "${project.name}-1.0-tests.jar" }
-        repoFileNames.find { it ==~ "${project.name}-1.0-tests.jar.asc" }
+        def expectedFilenames = ["${project.name}-1.0.jar", "${project.name}-1.0.jar.asc", "${project.name}-1.0.pom",
+                                 "${project.name}-1.0.pom.asc", "${project.name}-1.0-javadoc.jar", "${project.name}-1.0-javadoc.jar.asc",
+                                 "${project.name}-1.0-sources.jar", "${project.name}-1.0-sources.jar.asc", "${project.name}-1.0-tests.jar",
+                                 "${project.name}-1.0-tests.jar.asc"]
+        assertExistingFiles(repoDir, expectedFilenames)
     }
 
-    def "Uploads all configured JARs and metadata without signature artifacts for release version"() {
+    def "Uploads all configured JARs, metadata and signature artifacts for release version with custom configuration"() {
         when:
-            buildFile << """
+        buildFile << """
+version = '1.0'
+group = 'org.gradle.mygroup'
+
+configurations {
+    myConfig.extendsFrom signatures
+}
+
+artifacts {
+    myConfig jar
+}
+
+nexus {
+    attachTests = true
+    repositoryUrl = 'file://$integTestDir.canonicalPath/repo'
+    configuration = configurations.myConfig
+}
+"""
+        GradleProject project = runTasks(integTestDir, 'uploadMyConfig')
+
+        then:
+        File repoDir = new File(integTestDir, 'repo/org/gradle/mygroup/integTest/1.0')
+        def expectedFilenames = ["${project.name}-1.0.jar", "${project.name}-1.0.jar.asc", "${project.name}-1.0.pom",
+                                 "${project.name}-1.0.pom.asc", "${project.name}-1.0-javadoc.jar", "${project.name}-1.0-javadoc.jar.asc",
+                                 "${project.name}-1.0-sources.jar", "${project.name}-1.0-sources.jar.asc", "${project.name}-1.0-tests.jar",
+                                 "${project.name}-1.0-tests.jar.asc"]
+        assertExistingFiles(repoDir, expectedFilenames)
+    }
+
+    def "Uploads all configured JARs and metadata without signature artifacts for release version with default configuration"() {
+        when:
+        buildFile << """
 version = '1.0'
 group = 'org.gradle.mygroup'
 
@@ -189,24 +254,48 @@ nexus {
     sign = false
 }
 """
-            GradleProject project = runTasks(integTestDir, 'uploadArchives')
+        GradleProject project = runTasks(integTestDir, 'uploadArchives')
 
         then:
-            File repoDir = new File(integTestDir, 'repo/org/gradle/mygroup/integTest/1.0')
-            def repoFileNames = repoDir.listFiles()*.name
-            repoFileNames.find { it ==~ "${project.name}-1.0.jar" }
-            !repoFileNames.find { it ==~ "${project.name}-1.0.jar.asc" }
-            repoFileNames.find { it ==~ "${project.name}-1.0.pom" }
-            !repoFileNames.find { it ==~ "${project.name}-1.0.pom.asc" }
-            repoFileNames.find { it ==~ "${project.name}-1.0-javadoc.jar" }
-            !repoFileNames.find { it ==~ "${project.name}-1.0-javadoc.jar.asc" }
-            repoFileNames.find { it ==~ "${project.name}-1.0-sources.jar" }
-            !repoFileNames.find { it ==~ "${project.name}-1.0-sources.jar.asc" }
-            repoFileNames.find { it ==~ "${project.name}-1.0-tests.jar" }
-            !repoFileNames.find { it ==~ "${project.name}-1.0-tests.jar.asc" }
+        File repoDir = new File(integTestDir, 'repo/org/gradle/mygroup/integTest/1.0')
+        def expectedFilenames = ["${project.name}-1.0.jar", "${project.name}-1.0.pom", "${project.name}-1.0-javadoc.jar",
+                                 "${project.name}-1.0-sources.jar", "${project.name}-1.0-tests.jar"]
+        assertExistingFiles(repoDir, expectedFilenames)
+        assertNoSignatureFiles(repoDir)
     }
 
-    def "Uploads all configured JARs, metadata and signature artifacts for snapshot version"() {
+    def "Uploads all configured JARs and metadata without signature artifacts for release version with custom configuration"() {
+        when:
+        buildFile << """
+version = '1.0'
+group = 'org.gradle.mygroup'
+
+configurations {
+    myConfig.extendsFrom signatures
+}
+
+artifacts {
+    myConfig jar
+}
+
+nexus {
+    attachTests = true
+    repositoryUrl = 'file://$integTestDir.canonicalPath/repo'
+    sign = false
+    configuration = configurations.myConfig
+}
+"""
+        GradleProject project = runTasks(integTestDir, 'uploadMyConfig')
+
+        then:
+        File repoDir = new File(integTestDir, 'repo/org/gradle/mygroup/integTest/1.0')
+        def expectedFilenames = ["${project.name}-1.0.jar", "${project.name}-1.0.pom", "${project.name}-1.0-javadoc.jar",
+                                 "${project.name}-1.0-sources.jar", "${project.name}-1.0-tests.jar"]
+        assertExistingFiles(repoDir, expectedFilenames)
+        assertNoSignatureFiles(repoDir)
+    }
+
+    def "Uploads all configured JARs, metadata and signature artifacts for snapshot version with default configuration"() {
         when:
         buildFile << """
 version = '1.0-SNAPSHOT'
@@ -221,22 +310,49 @@ nexus {
 
         then:
         File repoDir = new File(integTestDir, 'repo/org/gradle/mygroup/integTest/1.0-SNAPSHOT')
-        def repoFileNames = repoDir.listFiles()*.name
-        repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\.jar" }
-        repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\.jar.asc" }
-        repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\.pom" }
-        repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\.pom.asc" }
-        repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-javadoc.jar" }
-        repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-javadoc.jar.asc" }
-        repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-sources.jar" }
-        repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-sources.jar.asc" }
-        repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-tests.jar" }
-        repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-tests.jar.asc" }
+        def expectedFilenames = ["${project.name}-1\\.0-\\d+\\.\\d+-1\\.jar", "${project.name}-1\\.0-\\d+\\.\\d+-1\\.jar.asc",
+                                 "${project.name}-1\\.0-\\d+\\.\\d+-1\\.pom", "${project.name}-1\\.0-\\d+\\.\\d+-1\\.pom.asc",
+                                 "${project.name}-1\\.0-\\d+\\.\\d+-1\\-javadoc.jar", "${project.name}-1\\.0-\\d+\\.\\d+-1\\-javadoc.jar.asc",
+                                 "${project.name}-1\\.0-\\d+\\.\\d+-1\\-sources.jar", "${project.name}-1\\.0-\\d+\\.\\d+-1\\-sources.jar.asc",
+                                 "${project.name}-1\\.0-\\d+\\.\\d+-1\\-tests.jar", "${project.name}-1\\.0-\\d+\\.\\d+-1\\-tests.jar.asc"]
+        assertExistingFiles(repoDir, expectedFilenames)
     }
 
-    def "Uploads all configured JARs and metadata without signature artifacts for snapshot version"() {
+    def "Uploads all configured JARs, metadata and signature artifacts for snapshot version with custom configuration"() {
         when:
-            buildFile << """
+        buildFile << """
+version = '1.0-SNAPSHOT'
+group = 'org.gradle.mygroup'
+
+configurations {
+    myConfig.extendsFrom signatures
+}
+
+artifacts {
+    myConfig jar
+}
+
+nexus {
+    attachTests = true
+    snapshotRepositoryUrl = 'file://$integTestDir.canonicalPath/repo'
+    configuration = configurations.myConfig
+}
+"""
+        GradleProject project = runTasks(integTestDir, 'uploadMyConfig')
+
+        then:
+        File repoDir = new File(integTestDir, 'repo/org/gradle/mygroup/integTest/1.0-SNAPSHOT')
+        def expectedFilenames = ["${project.name}-1\\.0-\\d+\\.\\d+-1\\.jar", "${project.name}-1\\.0-\\d+\\.\\d+-1\\.jar.asc",
+                                 "${project.name}-1\\.0-\\d+\\.\\d+-1\\.pom", "${project.name}-1\\.0-\\d+\\.\\d+-1\\.pom.asc",
+                                 "${project.name}-1\\.0-\\d+\\.\\d+-1\\-javadoc.jar", "${project.name}-1\\.0-\\d+\\.\\d+-1\\-javadoc.jar.asc",
+                                 "${project.name}-1\\.0-\\d+\\.\\d+-1\\-sources.jar", "${project.name}-1\\.0-\\d+\\.\\d+-1\\-sources.jar.asc",
+                                 "${project.name}-1\\.0-\\d+\\.\\d+-1\\-tests.jar", "${project.name}-1\\.0-\\d+\\.\\d+-1\\-tests.jar.asc"]
+        assertExistingFiles(repoDir, expectedFilenames)
+    }
+
+    def "Uploads all configured JARs and metadata without signature artifacts for snapshot version with default configuration"() {
+        when:
+        buildFile << """
 version = '1.0-SNAPSHOT'
 group = 'org.gradle.mygroup'
 
@@ -246,24 +362,50 @@ nexus {
     sign = false
 }
 """
-            GradleProject project = runTasks(integTestDir, 'uploadArchives')
+        GradleProject project = runTasks(integTestDir, 'uploadArchives')
 
         then:
-            File repoDir = new File(integTestDir, 'repo/org/gradle/mygroup/integTest/1.0-SNAPSHOT')
-            def repoFileNames = repoDir.listFiles()*.name
-            repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\.jar" }
-            !repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\.jar.asc" }
-            repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\.pom" }
-            !repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\.pom.asc" }
-            repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-javadoc.jar" }
-            !repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-javadoc.jar.asc" }
-            repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-sources.jar" }
-            !repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-sources.jar.asc" }
-            repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-tests.jar" }
-            !repoFileNames.find { it ==~ "${project.name}-1\\.0-\\d+\\.\\d+-1\\-tests.jar.asc" }
+        File repoDir = new File(integTestDir, 'repo/org/gradle/mygroup/integTest/1.0-SNAPSHOT')
+        def expectedFilenames = ["${project.name}-1\\.0-\\d+\\.\\d+-1\\.jar", "${project.name}-1\\.0-\\d+\\.\\d+-1\\.pom",
+                                 "${project.name}-1\\.0-\\d+\\.\\d+-1\\-javadoc.jar", "${project.name}-1\\.0-\\d+\\.\\d+-1\\-sources.jar",
+                                 "${project.name}-1\\.0-\\d+\\.\\d+-1\\-tests.jar"]
+        assertExistingFiles(repoDir, expectedFilenames)
+        assertNoSignatureFiles(repoDir)
     }
 
-    def "Installs all configured JARs and metadata for release version"() {
+    def "Uploads all configured JARs and metadata without signature artifacts for snapshot version with custom configuration"() {
+        when:
+        buildFile << """
+version = '1.0-SNAPSHOT'
+group = 'org.gradle.mygroup'
+
+configurations {
+    myConfig.extendsFrom signatures
+}
+
+artifacts {
+    myConfig jar
+}
+
+nexus {
+    attachTests = true
+    snapshotRepositoryUrl = 'file://$integTestDir.canonicalPath/repo'
+    sign = false
+    configuration = configurations.myConfig
+}
+"""
+        GradleProject project = runTasks(integTestDir, 'uploadMyConfig')
+
+        then:
+        File repoDir = new File(integTestDir, 'repo/org/gradle/mygroup/integTest/1.0-SNAPSHOT')
+        def expectedFilenames = ["${project.name}-1\\.0-\\d+\\.\\d+-1\\.jar", "${project.name}-1\\.0-\\d+\\.\\d+-1\\.pom",
+                                 "${project.name}-1\\.0-\\d+\\.\\d+-1\\-javadoc.jar", "${project.name}-1\\.0-\\d+\\.\\d+-1\\-sources.jar",
+                                 "${project.name}-1\\.0-\\d+\\.\\d+-1\\-tests.jar"]
+        assertExistingFiles(repoDir, expectedFilenames)
+        assertNoSignatureFiles(repoDir)
+    }
+
+    def "Installs all configured JARs, metadata and signature artifacts for release version with default configuration"() {
         setup:
         def projectCoordinates = [group: 'org.gradle.mygroup', name: 'integTest', version: '1.0']
         File installationDir = new File(M2_HOME_DIR, createInstallationDir(projectCoordinates))
@@ -281,15 +423,60 @@ nexus {
         runTasks(integTestDir, MavenPlugin.INSTALL_TASK_NAME)
 
         then:
-        def repoFileNames = installationDir.listFiles()*.name
-        repoFileNames.find { it ==~ "${projectCoordinates.name}-${projectCoordinates.version}.jar" }
-        repoFileNames.find { it ==~ "${projectCoordinates.name}-${projectCoordinates.version}.pom" }
-        repoFileNames.find { it ==~ "${projectCoordinates.name}-${projectCoordinates.version}-javadoc.jar" }
-        repoFileNames.find { it ==~ "${projectCoordinates.name}-${projectCoordinates.version}-sources.jar" }
-        repoFileNames.find { it ==~ "${projectCoordinates.name}-${projectCoordinates.version}-tests.jar" }
+        def expectedFilenames = ["${projectCoordinates.name}-${projectCoordinates.version}.jar",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}.jar.asc",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}.pom",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}.pom.asc",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}-javadoc.jar",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}-javadoc.jar.asc",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}-sources.jar",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}-sources.jar.asc",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}-tests.jar",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}-tests.jar.asc"]
+        assertExistingFiles(installationDir, expectedFilenames)
     }
 
-    def "Installs all configured JARs and metadata for snapshot version"() {
+    def "Installs all configured JARs, metadata and signature artifacts for release version with custom configuration"() {
+        setup:
+        def projectCoordinates = [group: 'org.gradle.mygroup', name: 'integTest', version: '1.0']
+        File installationDir = new File(M2_HOME_DIR, createInstallationDir(projectCoordinates))
+        deleteMavenLocalInstallationDir(installationDir)
+
+        when:
+        buildFile << """
+version = '$projectCoordinates.version'
+group = '$projectCoordinates.group'
+
+configurations {
+    myConfig.extendsFrom signatures
+}
+
+artifacts {
+    myConfig jar
+}
+
+nexus {
+    attachTests = true
+    configuration = configurations.myConfig
+}
+"""
+        runTasks(integTestDir, MavenPlugin.INSTALL_TASK_NAME)
+
+        then:
+        def expectedFilenames = ["${projectCoordinates.name}-${projectCoordinates.version}.jar",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}.jar.asc",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}.pom",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}.pom.asc",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}-javadoc.jar",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}-javadoc.jar.asc",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}-sources.jar",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}-sources.jar.asc",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}-tests.jar",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}-tests.jar.asc"]
+        assertExistingFiles(installationDir, expectedFilenames)
+    }
+
+    def "Installs all configured JARs, metadata and signature artifacts for snapshot version with default configuration"() {
         setup:
         def projectCoordinates = [group: 'org.gradle.mygroup', name: 'integTest', version: '1.0-SNAPSHOT']
         File installationDir = new File(M2_HOME_DIR, createInstallationDir(projectCoordinates))
@@ -307,12 +494,57 @@ nexus {
         runTasks(integTestDir, MavenPlugin.INSTALL_TASK_NAME)
 
         then:
-        def repoFileNames = installationDir.listFiles()*.name
-        repoFileNames.find { it ==~ "${projectCoordinates.name}-${projectCoordinates.version}.jar" }
-        repoFileNames.find { it ==~ "${projectCoordinates.name}-${projectCoordinates.version}.pom" }
-        repoFileNames.find { it ==~ "${projectCoordinates.name}-${projectCoordinates.version}-javadoc.jar" }
-        repoFileNames.find { it ==~ "${projectCoordinates.name}-${projectCoordinates.version}-sources.jar" }
-        repoFileNames.find { it ==~ "${projectCoordinates.name}-${projectCoordinates.version}-tests.jar" }
+        def expectedFilenames = ["${projectCoordinates.name}-${projectCoordinates.version}.jar",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}.jar.asc",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}.pom",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}.pom.asc",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}-javadoc.jar",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}-javadoc.jar.asc",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}-sources.jar",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}-sources.jar.asc",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}-tests.jar",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}-tests.jar.asc"]
+        assertExistingFiles(installationDir, expectedFilenames)
+    }
+
+    def "Installs all configured JARs, metadata and signature artifacts for snapshot version with custom configuration"() {
+        setup:
+        def projectCoordinates = [group: 'org.gradle.mygroup', name: 'integTest', version: '1.0-SNAPSHOT']
+        File installationDir = new File(M2_HOME_DIR, createInstallationDir(projectCoordinates))
+        deleteMavenLocalInstallationDir(installationDir)
+
+        when:
+        buildFile << """
+version = '$projectCoordinates.version'
+group = '$projectCoordinates.group'
+
+configurations {
+    myConfig.extendsFrom signatures
+}
+
+artifacts {
+    myConfig jar
+}
+
+nexus {
+    attachTests = true
+    configuration = configurations.myConfig
+}
+"""
+        runTasks(integTestDir, MavenPlugin.INSTALL_TASK_NAME)
+
+        then:
+        def expectedFilenames = ["${projectCoordinates.name}-${projectCoordinates.version}.jar",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}.jar.asc",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}.pom",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}.pom.asc",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}-javadoc.jar",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}-javadoc.jar.asc",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}-sources.jar",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}-sources.jar.asc",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}-tests.jar",
+                                 "${projectCoordinates.name}-${projectCoordinates.version}-tests.jar.asc"]
+        assertExistingFiles(installationDir, expectedFilenames)
     }
 
     private void deleteMavenLocalInstallationDir(File installationDir) {
@@ -327,6 +559,30 @@ nexus {
 
     private String createInstallationDir(projectCoordinates) {
         "${projectCoordinates.group.replaceAll('\\.', '/')}/$projectCoordinates.name/$projectCoordinates.version"
+    }
+
+    private void assertExistingFiles(File dir, List<String> requiredFilenames) {
+        assertExistingDirectory(dir)
+        def dirFileNames = dir.listFiles()*.name
+
+        requiredFilenames.each { filename ->
+            assert dirFileNames.find { it ==~ filename }
+        }
+    }
+
+    private void assertNoSignatureFiles(File dir) {
+        assertExistingDirectory(dir)
+        def dirFileNames = dir.listFiles()*.name
+
+        dirFileNames.each { filename ->
+            assert !filename.endsWith('.asc')
+        }
+    }
+
+    private void assertExistingDirectory(File dir) {
+        if(!dir || !dir.exists()) {
+            fail("Unable to check target directory '${dir?.canonicalPath}' for files.")
+        }
     }
 
     private GradleProject runTasks(File projectDir, String... tasks) {

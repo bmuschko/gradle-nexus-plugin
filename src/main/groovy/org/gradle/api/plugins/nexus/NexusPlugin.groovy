@@ -33,9 +33,6 @@ import org.gradle.plugins.signing.SigningPlugin
  */
 class NexusPlugin implements Plugin<Project> {
     static final String JAR_TASK_GROUP = 'Build'
-    static final String UPLOAD_ARCHIVES_TASK_NAME = 'uploadArchives'
-    static final String UPLOAD_ARCHIVES_TASK_GRAPH_NAME = ":$UPLOAD_ARCHIVES_TASK_NAME"
-    static final String ARCHIVES_CONFIGURATION_NAME = 'archives'
     static final String NEXUS_USERNAME = 'nexusUsername'
     static final String NEXUS_PASSWORD = 'nexusPassword'
 
@@ -54,40 +51,52 @@ class NexusPlugin implements Plugin<Project> {
 
     private void configureTasks(Project project, NexusPluginExtension extension) {
         project.afterEvaluate {
+            changeInstallTaskConfiguration(project, extension)
             configureSourcesJarTask(project, extension)
             configureTestsJarTask(project, extension)
             configureJavadocJarTask(project, extension)
         }
     }
 
+    private void changeInstallTaskConfiguration(Project project, NexusPluginExtension extension) {
+        if(!extension.usesStandardConfiguration()) {
+            project.tasks.getByName(MavenPlugin.INSTALL_TASK_NAME).configuration = project.configurations[extension.configuration]
+        }
+    }
+
     private void configureSourcesJarTask(Project project, NexusPluginExtension extension) {
         if(extension.attachSources) {
-            Jar sourcesJarTask = project.task('sourcesJar', type: Jar)
-            sourcesJarTask.classifier = 'sources'
-            sourcesJarTask.group = JAR_TASK_GROUP
-            sourcesJarTask.description = 'Assembles a jar archive containing the main sources of this project.'
-            sourcesJarTask.from project.sourceSets.main.allSource
-            project.artifacts.add(ARCHIVES_CONFIGURATION_NAME, project.sourcesJar)
+            Jar sourcesJarTask = project.task('sourcesJar', type: Jar) {
+                classifier = 'sources'
+                group = JAR_TASK_GROUP
+                description = 'Assembles a jar archive containing the main sources of this project.'
+                from project.sourceSets.main.allSource
+            }
+
+            project.artifacts.add(extension.configuration, sourcesJarTask)
         }
     }
 
     private void configureTestsJarTask(Project project, NexusPluginExtension extension) {
         if(extension.attachTests) {
-            Jar testsJarTask = project.task('testsJar', type: Jar)
-            testsJarTask.classifier = 'tests'
-            testsJarTask.group = JAR_TASK_GROUP
-            testsJarTask.description = 'Assembles a jar archive containing the test sources of this project.'
-            testsJarTask.from project.sourceSets.test.output
-            project.artifacts.add(ARCHIVES_CONFIGURATION_NAME, project.testsJar)
+            Jar testsJarTask = project.task('testsJar', type: Jar) {
+                classifier = 'tests'
+                group = JAR_TASK_GROUP
+                description = 'Assembles a jar archive containing the test sources of this project.'
+                from project.sourceSets.test.output
+            }
+
+            project.artifacts.add(extension.configuration, testsJarTask)
         }
     }
 
     private void configureJavadocJarTask(Project project, NexusPluginExtension extension) {
         if(extension.attachJavadoc) {
-            Jar javaDocJarTask = project.task('javadocJar', type: Jar)
-            javaDocJarTask.classifier = 'javadoc'
-            javaDocJarTask.group = JAR_TASK_GROUP
-            javaDocJarTask.description = 'Assembles a jar archive containing the generated Javadoc API documentation of this project.'
+            Jar javaDocJarTask = project.task('javadocJar', type: Jar) {
+                classifier = 'javadoc'
+                group = JAR_TASK_GROUP
+                description = 'Assembles a jar archive containing the generated Javadoc API documentation of this project.'
+            }
 
             if(hasGroovyPlugin(project)) {
                 javaDocJarTask.from project.groovydoc
@@ -96,7 +105,7 @@ class NexusPlugin implements Plugin<Project> {
                 javaDocJarTask.from project.javadoc
             }
 
-            project.artifacts.add(ARCHIVES_CONFIGURATION_NAME, project.javadocJar)
+            project.artifacts.add(extension.configuration, javaDocJarTask)
         }
     }
 
@@ -105,60 +114,80 @@ class NexusPlugin implements Plugin<Project> {
             if(extension.sign) {
                 project.signing {
                     required {
-                        project.gradle.taskGraph.hasTask(UPLOAD_ARCHIVES_TASK_GRAPH_NAME) && !project.version.endsWith('SNAPSHOT')
+                        project.gradle.taskGraph.hasTask(extension.uploadTaskPath) && !project.version.endsWith('SNAPSHOT')
                     }
 
-                    sign project.configurations.archives
+                    sign project.configurations[extension.configuration]
 
 
-                    def uploadTasks = project.tasks.withType(Upload).matching { it.path == UPLOAD_ARCHIVES_TASK_GRAPH_NAME }
-
-                    uploadTasks.each { task ->
-                        task.repositories.mavenDeployer() {
-                            beforeDeployment { MavenDeployment deployment ->
-                                signPom(deployment)
-                            }
-                        }
+                    project.gradle.taskGraph.whenReady {
+                        signPomForUpload(project, extension)
+                        signInstallPom(project)
                     }
                 }
             }
         }
     }
 
-    private void configurePom(Project project) {
-        project.ext.modifyPom = { Closure modification ->
-            project.poms.each {
-                it.whenConfigured { project.configure(it, modification) }
+    private void signPomForUpload(Project project, NexusPluginExtension extension) {
+        def uploadTasks = project.tasks.withType(Upload).matching { it.path == extension.uploadTaskPath }
+
+        uploadTasks.each { task ->
+            task.repositories.mavenDeployer() {
+                beforeDeployment { MavenDeployment deployment ->
+                    project.signing.signPom(deployment)
+                }
             }
         }
+    }
 
-        project.ext.poms = [project.tasks.getByName(MavenPlugin.INSTALL_TASK_NAME).repositories.mavenInstaller(),
-                            project.tasks.getByName(UPLOAD_ARCHIVES_TASK_NAME).repositories.mavenDeployer()]*.pom
+    private void signInstallPom(Project project) {
+        def installTasks = project.tasks.withType(Upload).matching { it.path == ":$MavenPlugin.INSTALL_TASK_NAME" }
+
+        installTasks.each { task ->
+            task.repositories.mavenInstaller() {
+                beforeDeployment { MavenDeployment deployment ->
+                    project.signing.signPom(deployment)
+                }
+            }
+        }
+    }
+
+    private void configurePom(Project project) {
+        project.afterEvaluate {
+            project.ext.modifyPom = { Closure modification ->
+                project.poms.each {
+                    it.whenConfigured { project.configure(it, modification) }
+                }
+            }
+        }
     }
 
     private void configureUpload(Project project, NexusPluginExtension extension) {
-        project.tasks.getByName(UPLOAD_ARCHIVES_TASK_NAME).repositories.mavenDeployer() {
-            project.gradle.taskGraph.whenReady { TaskExecutionGraph taskGraph ->
-                if(taskGraph.hasTask(UPLOAD_ARCHIVES_TASK_GRAPH_NAME)) {
-                    Console console = System.console()
+        project.afterEvaluate {
+            project.tasks.getByName(extension.uploadTaskName).repositories.mavenDeployer() {
+                project.gradle.taskGraph.whenReady { TaskExecutionGraph taskGraph ->
+                    if(taskGraph.hasTask(extension.uploadTaskPath)) {
+                        Console console = System.console()
 
-                    String nexusUsername = project.hasProperty(NEXUS_USERNAME) ?
-                                           project.property(NEXUS_USERNAME) :
-                                           console.readLine('\nPlease specify username: ')
+                        String nexusUsername = project.hasProperty(NEXUS_USERNAME) ?
+                                               project.property(NEXUS_USERNAME) :
+                                               console.readLine('\nPlease specify username: ')
 
-                    String nexusPassword = project.hasProperty(NEXUS_PASSWORD) ?
-                                           project.property(NEXUS_PASSWORD) :
-                                           new String(console.readPassword('\nPlease specify password: '))
+                        String nexusPassword = project.hasProperty(NEXUS_PASSWORD) ?
+                                               project.property(NEXUS_PASSWORD) :
+                                               new String(console.readPassword('\nPlease specify password: '))
 
-                    if(extension.repositoryUrl) {
-                        repository(url: extension.repositoryUrl) {
-                            authentication(userName: nexusUsername, password: nexusPassword)
+                        if(extension.repositoryUrl) {
+                            repository(url: extension.repositoryUrl) {
+                                authentication(userName: nexusUsername, password: nexusPassword)
+                            }
                         }
-                    }
 
-                    if(extension.snapshotRepositoryUrl) {
-                        snapshotRepository(url: extension.snapshotRepositoryUrl) {
-                            authentication(userName: nexusUsername, password: nexusPassword)
+                        if(extension.snapshotRepositoryUrl) {
+                            snapshotRepository(url: extension.snapshotRepositoryUrl) {
+                                authentication(userName: nexusUsername, password: nexusPassword)
+                            }
                         }
                     }
                 }
