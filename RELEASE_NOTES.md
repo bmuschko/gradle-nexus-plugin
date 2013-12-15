@@ -1,3 +1,7 @@
+### Version 0.6 (December 15, 2013)
+
+* Allow publishing using a custom configuration - [Issue 1](https://github.com/bmuschko/gradle-nexus-plugin/issues/1).
+
 ### Version 0.5.1 (December 11, 2013)
 
 * Fix signing the POMs - [Issue 17](https://github.com/bmuschko/gradle-nexus-plugin/issues/17).
