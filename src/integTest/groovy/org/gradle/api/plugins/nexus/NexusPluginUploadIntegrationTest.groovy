@@ -45,6 +45,45 @@ nexus {
         assertExistingFiles(repoDir, expectedFilenames)
     }
 
+    def "Uploads all configured JARs, customized metadata and signature artifacts with default configuration"() {
+        when:
+        buildFile << """
+version = '1.0'
+group = 'org.gradle.mygroup'
+
+nexus {
+    attachTests = true
+    repositoryUrl = 'file://$integTestDir.canonicalPath/repo'
+}
+
+modifyPom {
+    project {
+        name 'myapp'
+        description 'My application'
+        inceptionYear '2012'
+
+        developers {
+            developer {
+                id 'bmuschko'
+                name 'Benjamin Muschko'
+                email 'benjamin.muschko@gmail.com'
+            }
+        }
+    }
+}
+"""
+        GradleProject project = runTasks(integTestDir, 'uploadArchives')
+
+        then:
+        File repoDir = new File(integTestDir, 'repo/org/gradle/mygroup/integTest/1.0')
+        def expectedFilenames = ["${project.name}-1.0.jar", "${project.name}-1.0.jar.asc", "${project.name}-1.0.pom",
+                                 "${project.name}-1.0.pom.asc", "${project.name}-1.0-javadoc.jar", "${project.name}-1.0-javadoc.jar.asc",
+                                 "${project.name}-1.0-sources.jar", "${project.name}-1.0-sources.jar.asc", "${project.name}-1.0-tests.jar",
+                                 "${project.name}-1.0-tests.jar.asc"]
+        assertExistingFiles(repoDir, expectedFilenames)
+        assertCorrectPomXml(new File(repoDir, "${project.name}-1.0.pom"))
+    }
+
     def "Uploads all configured JARs, metadata and signature artifacts for release version with custom configuration"() {
         when:
         buildFile << """
@@ -74,6 +113,54 @@ nexus {
                                  "${project.name}-1.0-sources.jar", "${project.name}-1.0-sources.jar.asc", "${project.name}-1.0-tests.jar",
                                  "${project.name}-1.0-tests.jar.asc"]
         assertExistingFiles(repoDir, expectedFilenames)
+    }
+
+    def "Uploads all configured JARs, customized metadata and signature artifacts with custom configuration"() {
+        when:
+        buildFile << """
+version = '1.0'
+group = 'org.gradle.mygroup'
+
+configurations {
+    myConfig.extendsFrom signatures
+}
+
+artifacts {
+    myConfig jar
+}
+
+nexus {
+    attachTests = true
+    repositoryUrl = 'file://$integTestDir.canonicalPath/repo'
+    configuration = configurations.myConfig
+}
+
+modifyPom {
+    project {
+        name 'myapp'
+        description 'My application'
+        inceptionYear '2012'
+
+        developers {
+            developer {
+                id 'bmuschko'
+                name 'Benjamin Muschko'
+                email 'benjamin.muschko@gmail.com'
+            }
+        }
+    }
+}
+"""
+        GradleProject project = runTasks(integTestDir, 'uploadMyConfig')
+
+        then:
+        File repoDir = new File(integTestDir, 'repo/org/gradle/mygroup/integTest/1.0')
+        def expectedFilenames = ["${project.name}-1.0.jar", "${project.name}-1.0.jar.asc", "${project.name}-1.0.pom",
+                "${project.name}-1.0.pom.asc", "${project.name}-1.0-javadoc.jar", "${project.name}-1.0-javadoc.jar.asc",
+                "${project.name}-1.0-sources.jar", "${project.name}-1.0-sources.jar.asc", "${project.name}-1.0-tests.jar",
+                "${project.name}-1.0-tests.jar.asc"]
+        assertExistingFiles(repoDir, expectedFilenames)
+        assertCorrectPomXml(new File(repoDir, "${project.name}-1.0.pom"))
     }
 
     def "Uploads all configured JARs and metadata without signature artifacts for release version with default configuration"() {

@@ -58,6 +58,54 @@ nexus {
         assertExistingFiles(installationDir, expectedFilenames)
     }
 
+    def "Installs all configured JARs, customized metadata and signature artifacts with default configuration"() {
+        setup:
+        def projectCoordinates = [group: 'org.gradle.mygroup', name: 'integTest', version: '1.0']
+        File installationDir = new File(M2_HOME_DIR, createInstallationDir(projectCoordinates))
+        deleteMavenLocalInstallationDir(installationDir)
+
+        when:
+        buildFile << """
+version = '$projectCoordinates.version'
+group = '$projectCoordinates.group'
+
+nexus {
+    attachTests = true
+}
+
+modifyPom {
+    project {
+        name 'myapp'
+        description 'My application'
+        inceptionYear '2012'
+
+        developers {
+            developer {
+                id 'bmuschko'
+                name 'Benjamin Muschko'
+                email 'benjamin.muschko@gmail.com'
+            }
+        }
+    }
+}
+"""
+        runTasks(integTestDir, MavenPlugin.INSTALL_TASK_NAME)
+
+        then:
+        def expectedFilenames = ["${projectCoordinates.name}-${projectCoordinates.version}.jar",
+                "${projectCoordinates.name}-${projectCoordinates.version}.jar.asc",
+                "${projectCoordinates.name}-${projectCoordinates.version}.pom",
+                "${projectCoordinates.name}-${projectCoordinates.version}.pom.asc",
+                "${projectCoordinates.name}-${projectCoordinates.version}-javadoc.jar",
+                "${projectCoordinates.name}-${projectCoordinates.version}-javadoc.jar.asc",
+                "${projectCoordinates.name}-${projectCoordinates.version}-sources.jar",
+                "${projectCoordinates.name}-${projectCoordinates.version}-sources.jar.asc",
+                "${projectCoordinates.name}-${projectCoordinates.version}-tests.jar",
+                "${projectCoordinates.name}-${projectCoordinates.version}-tests.jar.asc"]
+        assertExistingFiles(installationDir, expectedFilenames)
+        assertCorrectPomXml(new File(installationDir, "${projectCoordinates.name}-${projectCoordinates.version}.pom"))
+    }
+
     def "Installs all configured JARs, metadata and signature artifacts for release version with custom configuration"() {
         setup:
         def projectCoordinates = [group: 'org.gradle.mygroup', name: 'integTest', version: '1.0']
@@ -96,6 +144,63 @@ nexus {
                                  "${projectCoordinates.name}-${projectCoordinates.version}-tests.jar",
                                  "${projectCoordinates.name}-${projectCoordinates.version}-tests.jar.asc"]
         assertExistingFiles(installationDir, expectedFilenames)
+    }
+
+    def "Installs all configured JARs, customized metadata and signature artifacts with custom configuration"() {
+        setup:
+        def projectCoordinates = [group: 'org.gradle.mygroup', name: 'integTest', version: '1.0']
+        File installationDir = new File(M2_HOME_DIR, createInstallationDir(projectCoordinates))
+        deleteMavenLocalInstallationDir(installationDir)
+
+        when:
+        buildFile << """
+version = '$projectCoordinates.version'
+group = '$projectCoordinates.group'
+
+configurations {
+    myConfig.extendsFrom signatures
+}
+
+artifacts {
+    myConfig jar
+}
+
+nexus {
+    attachTests = true
+    configuration = configurations.myConfig
+}
+
+modifyPom {
+    project {
+        name 'myapp'
+        description 'My application'
+        inceptionYear '2012'
+
+        developers {
+            developer {
+                id 'bmuschko'
+                name 'Benjamin Muschko'
+                email 'benjamin.muschko@gmail.com'
+            }
+        }
+    }
+}
+"""
+        runTasks(integTestDir, MavenPlugin.INSTALL_TASK_NAME)
+
+        then:
+        def expectedFilenames = ["${projectCoordinates.name}-${projectCoordinates.version}.jar",
+                "${projectCoordinates.name}-${projectCoordinates.version}.jar.asc",
+                "${projectCoordinates.name}-${projectCoordinates.version}.pom",
+                "${projectCoordinates.name}-${projectCoordinates.version}.pom.asc",
+                "${projectCoordinates.name}-${projectCoordinates.version}-javadoc.jar",
+                "${projectCoordinates.name}-${projectCoordinates.version}-javadoc.jar.asc",
+                "${projectCoordinates.name}-${projectCoordinates.version}-sources.jar",
+                "${projectCoordinates.name}-${projectCoordinates.version}-sources.jar.asc",
+                "${projectCoordinates.name}-${projectCoordinates.version}-tests.jar",
+                "${projectCoordinates.name}-${projectCoordinates.version}-tests.jar.asc"]
+        assertExistingFiles(installationDir, expectedFilenames)
+        assertCorrectPomXml(new File(installationDir, "${projectCoordinates.name}-${projectCoordinates.version}.pom"))
     }
 
     def "Installs all configured JARs, metadata and signature artifacts for snapshot version with default configuration"() {

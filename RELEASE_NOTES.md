@@ -1,3 +1,7 @@
+### Version 0.6.1 (December 28, 2013)
+
+* Could not find method modifyPom - [Issue 18](https://github.com/bmuschko/gradle-nexus-plugin/issues/18).
+
 ### Version 0.6 (December 15, 2013)
 
 * Allow publishing using a custom configuration - [Issue 1](https://github.com/bmuschko/gradle-nexus-plugin/issues/1).

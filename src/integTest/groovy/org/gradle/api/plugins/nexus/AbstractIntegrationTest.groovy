@@ -92,6 +92,18 @@ apply plugin: org.gradle.api.plugins.nexus.NexusPlugin
         }
     }
 
+    protected void assertCorrectPomXml(File pomFile) {
+        println pomFile.text
+        def pomXml = new XmlSlurper().parse(pomFile)
+        assert pomXml.name.text() == 'myapp'
+        assert pomXml.description.text() == 'My application'
+        assert pomXml.inceptionYear.text() == '2012'
+        def developer = pomXml.developers.developer[0]
+        assert developer.id.text() == 'bmuschko'
+        assert developer.name.text() == 'Benjamin Muschko'
+        assert developer.email.text() == 'benjamin.muschko@gmail.com'
+    }
+
     protected GradleProject runTasks(File projectDir, String... tasks) {
         ProjectConnection connection = GradleConnector.newConnector().forProjectDirectory(projectDir).connect()
 
