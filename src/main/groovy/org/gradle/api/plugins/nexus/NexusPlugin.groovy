@@ -129,7 +129,7 @@ class NexusPlugin implements Plugin<Project> {
     }
 
     private void signPomForUpload(Project project, NexusPluginExtension extension) {
-        def uploadTasks = project.tasks.withType(Upload).matching { it.path == extension.uploadTaskPath }
+        def uploadTasks = project.tasks.withType(Upload).matching { it.path.endsWith(extension.uploadTaskPath) }
 
         uploadTasks.each { task ->
             task.repositories.mavenDeployer() {
@@ -141,7 +141,7 @@ class NexusPlugin implements Plugin<Project> {
     }
 
     private void signInstallPom(Project project) {
-        def installTasks = project.tasks.withType(Upload).matching { it.path == ":$MavenPlugin.INSTALL_TASK_NAME" }
+        def installTasks = project.tasks.withType(Upload).matching { it.path.endsWith(":$MavenPlugin.INSTALL_TASK_NAME") }
 
         installTasks.each { task ->
             task.repositories.mavenInstaller() {
