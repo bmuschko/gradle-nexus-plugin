@@ -22,7 +22,7 @@ import org.gradle.tooling.model.GradleProject
  *
  * @author Benjamin Muschko
  */
-class NexusPluginArtifactIntegrationTest extends AbstractIntegrationTest {
+class NexusPluginArtifactIntegrationTest extends SingleProjectBuildIntegrationTest {
     def "Creates all configured JARs for default configuration"() {
         when:
         buildFile << """

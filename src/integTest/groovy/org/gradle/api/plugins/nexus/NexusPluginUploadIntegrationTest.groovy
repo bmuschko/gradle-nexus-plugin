@@ -22,7 +22,7 @@ import org.gradle.tooling.model.GradleProject
  *
  * @author Benjamin Muschko
  */
-class NexusPluginUploadIntegrationTest extends AbstractIntegrationTest {
+class NexusPluginUploadIntegrationTest extends SingleProjectBuildIntegrationTest {
     def "Uploads all configured JARs, metadata and signature artifacts for release version with default configuration"() {
         when:
         buildFile << """

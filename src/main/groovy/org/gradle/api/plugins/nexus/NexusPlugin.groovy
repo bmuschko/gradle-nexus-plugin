@@ -19,6 +19,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.maven.MavenDeployment
 import org.gradle.api.execution.TaskExecutionGraph
+import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.MavenPlugin
@@ -32,7 +33,7 @@ import org.gradle.plugins.signing.SigningPlugin
  * @author Benjamin Muschko
  */
 class NexusPlugin implements Plugin<Project> {
-    static final String JAR_TASK_GROUP = 'Build'
+    static final String JAR_TASK_GROUP = BasePlugin.BUILD_GROUP
     static final String NEXUS_USERNAME = 'nexusUsername'
     static final String NEXUS_PASSWORD = 'nexusPassword'
 
@@ -114,14 +115,14 @@ class NexusPlugin implements Plugin<Project> {
             if(extension.sign) {
                 project.signing {
                     required {
-                        project.gradle.taskGraph.hasTask(extension.uploadTaskPath) && !project.version.endsWith('SNAPSHOT')
+                        project.gradle.taskGraph.hasTask(extension.getUploadTaskPath(project)) && !project.version.endsWith('SNAPSHOT')
                     }
 
                     sign project.configurations[extension.configuration]
 
                     project.gradle.taskGraph.whenReady {
                         signPomForUpload(project, extension)
-                        signInstallPom(project)
+                        signInstallPom(project, extension)
                     }
                 }
             }
@@ -129,7 +130,7 @@ class NexusPlugin implements Plugin<Project> {
     }
 
     private void signPomForUpload(Project project, NexusPluginExtension extension) {
-        def uploadTasks = project.tasks.withType(Upload).matching { it.path.endsWith(extension.uploadTaskPath) }
+        def uploadTasks = project.tasks.withType(Upload).matching { it.path == extension.getUploadTaskPath(project) }
 
         uploadTasks.each { task ->
             task.repositories.mavenDeployer() {
@@ -140,8 +141,8 @@ class NexusPlugin implements Plugin<Project> {
         }
     }
 
-    private void signInstallPom(Project project) {
-        def installTasks = project.tasks.withType(Upload).matching { it.path.endsWith(":$MavenPlugin.INSTALL_TASK_NAME") }
+    private void signInstallPom(Project project, NexusPluginExtension extension) {
+        def installTasks = project.tasks.withType(Upload).matching { it.path == extension.getInstallTaskPath(project) }
 
         installTasks.each { task ->
             task.repositories.mavenInstaller() {
@@ -171,7 +172,7 @@ class NexusPlugin implements Plugin<Project> {
         project.afterEvaluate {
             project.tasks.getByName(extension.uploadTaskName).repositories.mavenDeployer() {
                 project.gradle.taskGraph.whenReady { TaskExecutionGraph taskGraph ->
-                    if(taskGraph.hasTask(extension.uploadTaskPath)) {
+                    if(taskGraph.hasTask(extension.getUploadTaskPath(project))) {
                         Console console = System.console()
 
                         String nexusUsername = project.hasProperty(NEXUS_USERNAME) ?

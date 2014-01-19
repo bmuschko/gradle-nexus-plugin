@@ -15,8 +15,10 @@
  */
 package org.gradle.api.plugins.nexus
 
+import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.plugins.MavenPlugin
 
 /**
  * Defines Sonatype Nexus plugin convention.
@@ -41,8 +43,16 @@ class NexusPluginExtension {
         "upload${configuration.capitalize()}"
     }
 
-    String getUploadTaskPath() {
-        ":$uploadTaskName"
+    String getUploadTaskPath(Project project) {
+        isRootProject(project) ? ":$uploadTaskName" : "$project.path:$uploadTaskName"
+    }
+
+    String getInstallTaskPath(Project project) {
+        isRootProject(project) ? ":$MavenPlugin.INSTALL_TASK_NAME" : "$project.path:$MavenPlugin.INSTALL_TASK_NAME"
+    }
+
+    private boolean isRootProject(Project project) {
+        project.rootProject == project
     }
 
     void setConfiguration(config) {

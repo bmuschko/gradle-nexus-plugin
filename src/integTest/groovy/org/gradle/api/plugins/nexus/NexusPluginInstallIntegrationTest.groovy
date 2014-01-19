@@ -24,7 +24,7 @@ import static org.spockframework.util.Assert.fail
  *
  * @author Benjamin Muschko
  */
-class NexusPluginInstallIntegrationTest extends AbstractIntegrationTest {
+class NexusPluginInstallIntegrationTest extends SingleProjectBuildIntegrationTest {
     final static M2_HOME_DIR = new File(System.properties['user.home'], '.m2/repository')
 
     def "Installs all configured JARs, metadata and signature artifacts for release version with default configuration"() {

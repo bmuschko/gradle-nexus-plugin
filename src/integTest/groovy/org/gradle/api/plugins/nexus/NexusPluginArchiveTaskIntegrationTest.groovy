@@ -23,7 +23,7 @@ import org.gradle.tooling.model.Task
  *
  * @author Benjamin Muschko
  */
-class NexusPluginArchiveTaskIntegrationTest extends AbstractIntegrationTest {
+class NexusPluginArchiveTaskIntegrationTest extends SingleProjectBuildIntegrationTest {
     def "Adds sources and Javadoc JAR tasks by default for Java project"() {
         when:
         GradleProject project = runTasks(integTestDir, 'tasks')

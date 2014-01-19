@@ -43,11 +43,7 @@ abstract class AbstractIntegrationTest extends Specification {
             fail('Unable to create integration test directory.')
         }
 
-        buildFile = new File(integTestDir, 'build.gradle')
-
-        if(!buildFile.createNewFile()) {
-            fail('Unable to create Gradle build script.')
-        }
+        buildFile = createNewFile(integTestDir, 'build.gradle')
 
         buildFile << """
 buildscript {
@@ -56,16 +52,31 @@ buildscript {
     }
 }
 
-apply plugin: 'java'
-apply plugin: org.gradle.api.plugins.nexus.NexusPlugin
-
 """
     }
 
-    def cleanup() {
-        if(!buildFile.delete()) {
-            fail('Unable to delete Gradle build script.')
+    protected File createNewDir(File parent, String dirname) {
+        File dir = new File(parent, dirname)
+
+        if(!dir.exists()) {
+            if(!dir.mkdirs()) {
+                fail("Unable to create new test directory $dir.canonicalPath.")
+            }
         }
+
+        dir
+    }
+
+    protected File createNewFile(File parent, String filename) {
+        File file = new File(parent, filename)
+
+        if(!file.exists()) {
+            if(!file.createNewFile()) {
+                fail("Unable to create new test file $file.canonicalPath.")
+            }
+        }
+
+        file
     }
 
     protected void assertExistingFiles(File dir, List<String> requiredFilenames) {
