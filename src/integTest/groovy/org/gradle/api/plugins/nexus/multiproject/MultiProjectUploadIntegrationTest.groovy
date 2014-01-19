@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.nexus
+package org.gradle.api.plugins.nexus.multiproject
 
 /**
  * Nexus plugin upload task integration tests for multi-project builds.
@@ -21,7 +21,7 @@ package org.gradle.api.plugins.nexus
  * @author Benjamin Muschko
  * @author Dirk Moebius
  */
-class NexusPluginUploadMultiProjectIntegrationTest extends MultiProjectBuildIntegrationTest {
+class MultiProjectUploadIntegrationTest extends MultiProjectBuildIntegrationTest {
     def "Uploads all configured JARs, metadata and signature artifacts for release version with default configuration"() {
         when:
         buildFile << """

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.nexus
+package org.gradle.api.plugins.nexus.singleproject
 
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.Task
@@ -23,7 +23,7 @@ import org.gradle.tooling.model.Task
  *
  * @author Benjamin Muschko
  */
-class NexusPluginArchiveTaskIntegrationTest extends SingleProjectBuildIntegrationTest {
+class SingleProjectArchiveTaskIntegrationTest extends SingleProjectBuildIntegrationTest {
     def "Adds sources and Javadoc JAR tasks by default for Java project"() {
         when:
         GradleProject project = runTasks(integTestDir, 'tasks')

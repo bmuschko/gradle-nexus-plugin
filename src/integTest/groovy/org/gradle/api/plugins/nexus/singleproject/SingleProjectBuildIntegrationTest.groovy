@@ -13,29 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.nexus
+package org.gradle.api.plugins.nexus.singleproject
+
+import org.gradle.api.plugins.nexus.AbstractIntegrationTest
 
 /**
- * Multi-project integration test.
+ * Single project integration test.
  *
  * @author Benjamin Muschko
  */
-class MultiProjectBuildIntegrationTest extends AbstractIntegrationTest {
-    File settingsFile
-    List<String> subprojects = ['subproject1', 'subproject2', 'subproject3']
-
+abstract class SingleProjectBuildIntegrationTest extends AbstractIntegrationTest {
     def setup() {
-        settingsFile = createNewFile(integTestDir, 'settings.gradle')
-
         buildFile << """
-subprojects {
-    apply plugin: 'java'
-    apply plugin: org.gradle.api.plugins.nexus.NexusPlugin
-}
+apply plugin: 'java'
+apply plugin: org.gradle.api.plugins.nexus.NexusPlugin
+
 """
-        subprojects.each { subproject ->
-            settingsFile << "include '$subproject'\n"
-            createNewDir(integTestDir, subproject)
-        }
     }
 }
+

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.nexus
+package org.gradle.api.plugins.nexus.singleproject
 
 import org.gradle.tooling.model.GradleProject
 
@@ -22,7 +22,7 @@ import org.gradle.tooling.model.GradleProject
  *
  * @author Benjamin Muschko
  */
-class NexusPluginUploadIntegrationTest extends SingleProjectBuildIntegrationTest {
+class SingleProjectUploadIntegrationTest extends SingleProjectBuildIntegrationTest {
     def "Uploads all configured JARs, metadata and signature artifacts for release version with default configuration"() {
         when:
         buildFile << """

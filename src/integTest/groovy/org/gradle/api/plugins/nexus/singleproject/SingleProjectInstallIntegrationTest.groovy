@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.nexus
+package org.gradle.api.plugins.nexus.singleproject
 
 import org.gradle.api.plugins.MavenPlugin
 
@@ -24,7 +24,7 @@ import static org.spockframework.util.Assert.fail
  *
  * @author Benjamin Muschko
  */
-class NexusPluginInstallIntegrationTest extends SingleProjectBuildIntegrationTest {
+class SingleProjectInstallIntegrationTest extends SingleProjectBuildIntegrationTest {
     final static M2_HOME_DIR = new File(System.properties['user.home'], '.m2/repository')
 
     def "Installs all configured JARs, metadata and signature artifacts for release version with default configuration"() {
