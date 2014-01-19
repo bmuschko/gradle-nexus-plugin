@@ -17,7 +17,7 @@ def compatibilityVersion = 1.5
 sourceCompatibility = compatibilityVersion
 targetCompatibility = compatibilityVersion
 group = 'org.gradle.api.plugins'
-version = '0.6.1'
+version = '0.7'
 
 repositories {
     mavenCentral()

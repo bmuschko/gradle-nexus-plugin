@@ -1,3 +1,7 @@
+### Version 0.7 (January 19, 2014)
+
+* Fix POM signing for multi-project builds - [Issue 19](https://github.com/bmuschko/gradle-nexus-plugin/issues/19).
+
 ### Version 0.6.1 (December 28, 2013)
 
 * Could not find method modifyPom - [Issue 18](https://github.com/bmuschko/gradle-nexus-plugin/issues/18).
