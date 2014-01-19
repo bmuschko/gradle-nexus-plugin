@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins.nexus
+
 /**
  * Nexus plugin upload task integration tests for multi-project builds.
  *
