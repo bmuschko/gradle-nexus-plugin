@@ -36,6 +36,9 @@ class NexusPlugin implements Plugin<Project> {
     static final String JAR_TASK_GROUP = BasePlugin.BUILD_GROUP
     static final String NEXUS_USERNAME = 'nexusUsername'
     static final String NEXUS_PASSWORD = 'nexusPassword'
+    static final String SIGNING_KEY_ID = 'signing.keyId'
+    static final String SIGNING_KEYRING = 'signing.secretKeyRingFile'
+    static final String SIGNING_PASSWORD = 'signing.password'
 
     @Override
     void apply(Project project) {
@@ -121,11 +124,36 @@ class NexusPlugin implements Plugin<Project> {
                     sign project.configurations[extension.configuration]
 
                     project.gradle.taskGraph.whenReady {
+                        if (project.signing.required) getPrivateKeyForSigning(project, extension)
                         signPomForUpload(project, extension)
                         signInstallPom(project, extension)
                     }
                 }
             }
+        }
+    }
+
+    private void getPrivateKeyForSigning(Project project, NexusPluginExtension extension) {
+        if (!project.hasProperty(SIGNING_KEY_ID)) {
+            throw new Exception("A GnuPG key ID is required for signing. Please set $SIGNING_KEY_ID=xxxxxxxx in ~/.gradle/gradle.properties.")
+        }
+        String signingKeyId = project.property(SIGNING_KEY_ID)
+
+        File keyringFile = project.hasProperty(SIGNING_KEYRING) ?
+                           new File(project.property(SIGNING_KEYRING)) :
+                           new File(new File(System.getProperty('user.home'), '.gnupg'), 'secring.gpg')
+        if (keyringFile.exists()) {
+            project.ext.set(SIGNING_KEYRING, keyringFile.getPath())
+        } else {
+            throw new Exception("GnuPG secret key file $keyringFile not found. Please set $SIGNING_KEYRING=/path/to/file.gpg in ~/.gradle/gradle.properties.")
+        }
+
+        Console console = System.console()
+        console.printf "\nThis release $project.version will be signed with your GnuPG key $signingKeyId in $keyringFile.\n"
+
+        if (!project.hasProperty(SIGNING_PASSWORD)) {
+            String password = new String(console.readPassword('Please enter your passphrase to unlock the secret key: '))
+            project.ext.set(SIGNING_PASSWORD, password)
         }
     }
 
