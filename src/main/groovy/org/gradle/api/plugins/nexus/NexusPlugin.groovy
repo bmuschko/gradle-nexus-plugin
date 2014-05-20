@@ -55,7 +55,7 @@ class NexusPlugin implements Plugin<Project> {
     }
 
     private void configureTasks(Project project, NexusPluginExtension extension) {
-        project.afterEvaluate {
+        project.gradle.projectsEvaluated {
             changeInstallTaskConfiguration(project, extension)
             configureSourcesJarTask(project, extension)
             configureTestsJarTask(project, extension)
@@ -65,7 +65,10 @@ class NexusPlugin implements Plugin<Project> {
 
     private void changeInstallTaskConfiguration(Project project, NexusPluginExtension extension) {
         if(!extension.usesStandardConfiguration()) {
-            project.tasks.getByName(MavenPlugin.INSTALL_TASK_NAME).configuration = project.configurations[extension.configuration]
+            def installTask = project.tasks.findByName(MavenPlugin.INSTALL_TASK_NAME)
+            if(installTask) {
+                installTask.configuration = project.configurations[extension.configuration]
+            }
         }
     }
 
@@ -115,9 +118,12 @@ class NexusPlugin implements Plugin<Project> {
     }
 
     private void configureSigning(Project project, NexusPluginExtension extension) {
-        project.afterEvaluate {
+        project.gradle.projectsEvaluated {
             if(extension.sign) {
                 project.signing {
+                    // MEMO: This is required if you change the configuration. There is a issue that Asc file will not be published.
+                    configuration = project.configurations[extension.configuration]
+
                     required {
                         project.gradle.taskGraph.hasTask(extension.getUploadTaskPath(project)) && !project.version.endsWith('SNAPSHOT')
                     }
@@ -198,13 +204,19 @@ class NexusPlugin implements Plugin<Project> {
         }
 
         project.afterEvaluate {
-            project.ext.poms = [project.tasks.getByName(MavenPlugin.INSTALL_TASK_NAME).repositories.mavenInstaller(),
-                                project.tasks.getByName(extension.uploadTaskName).repositories.mavenDeployer()]*.pom
+            def installTask = project.tasks.findByName(MavenPlugin.INSTALL_TASK_NAME)
+            def uploadTask = project.tasks.getByName(extension.uploadTaskName)
+
+            if(installTask) {
+                project.ext.poms = [installTask.repositories.mavenInstaller(), uploadTask.repositories.mavenDeployer()]*.pom
+            } else {
+                project.ext.poms = [uploadTask.repositories.mavenDeployer()]*.pom
+            }
         }
     }
 
     private void configureUpload(Project project, NexusPluginExtension extension) {
-        project.afterEvaluate {
+        project.gradle.projectsEvaluated {
             project.tasks.getByName(extension.uploadTaskName).repositories.mavenDeployer() {
                 project.gradle.taskGraph.whenReady { TaskExecutionGraph taskGraph ->
                     if(taskGraph.hasTask(extension.getUploadTaskPath(project))) {
