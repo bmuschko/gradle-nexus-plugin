@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins.nexus
 
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.maven.MavenDeployment
@@ -124,7 +125,10 @@ class NexusPlugin implements Plugin<Project> {
                     sign project.configurations[extension.configuration]
 
                     project.gradle.taskGraph.whenReady {
-                        if (project.signing.required) getPrivateKeyForSigning(project, extension)
+                        if(project.signing.required) {
+                            getPrivateKeyForSigning(project)
+                        }
+
                         signPomForUpload(project, extension)
                         signInstallPom(project, extension)
                     }
@@ -133,25 +137,28 @@ class NexusPlugin implements Plugin<Project> {
         }
     }
 
-    private void getPrivateKeyForSigning(Project project, NexusPluginExtension extension) {
+    private void getPrivateKeyForSigning(Project project) {
         if (!project.hasProperty(SIGNING_KEY_ID)) {
-            throw new Exception("A GnuPG key ID is required for signing. Please set $SIGNING_KEY_ID=xxxxxxxx in ~/.gradle/gradle.properties.")
+            throw new GradleException("A GnuPG key ID is required for signing. Please set $SIGNING_KEY_ID=xxxxxxxx in <USER_HOME>/.gradle/gradle.properties.")
         }
+
         String signingKeyId = project.property(SIGNING_KEY_ID)
 
         File keyringFile = project.hasProperty(SIGNING_KEYRING) ?
-                           new File(project.property(SIGNING_KEYRING)) :
+                           project.file(project.property(SIGNING_KEYRING)) :
                            new File(new File(System.getProperty('user.home'), '.gnupg'), 'secring.gpg')
-        if (keyringFile.exists()) {
+
+        if(keyringFile.exists()) {
             project.ext.set(SIGNING_KEYRING, keyringFile.getPath())
-        } else {
-            throw new Exception("GnuPG secret key file $keyringFile not found. Please set $SIGNING_KEYRING=/path/to/file.gpg in ~/.gradle/gradle.properties.")
+        }
+        else {
+            throw new GradleException("GnuPG secret key file $keyringFile not found. Please set $SIGNING_KEYRING=/path/to/file.gpg in <USER_HOME>/.gradle/gradle.properties.")
         }
 
         Console console = System.console()
         console.printf "\nThis release $project.version will be signed with your GnuPG key $signingKeyId in $keyringFile.\n"
 
-        if (!project.hasProperty(SIGNING_PASSWORD)) {
+        if(!project.hasProperty(SIGNING_PASSWORD)) {
             String password = new String(console.readPassword('Please enter your passphrase to unlock the secret key: '))
             project.ext.set(SIGNING_PASSWORD, password)
         }

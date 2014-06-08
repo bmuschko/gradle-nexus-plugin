@@ -1,3 +1,7 @@
+### Version 0.7.1 (June 8, 2014)
+
+* Request signing properties on the command line if not provided through `gradle.properties` - [Pull request 25](https://github.com/bmuschko/gradle-nexus-plugin/pull/25).
+
 ### Version 0.7 (January 19, 2014)
 
 * Fix POM signing for multi-project builds - [Issue 19](https://github.com/bmuschko/gradle-nexus-plugin/issues/19).
