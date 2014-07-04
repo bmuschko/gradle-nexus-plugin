@@ -119,8 +119,9 @@ If you don't specify one of these properties, the plugin will prompt your for th
 
 ## FAQ
 
-**How do I publish my artifacts to Maven Central aka Sonatype OSS?**
+**How do I publish my artifacts to the Central Repository aka Maven Central aka Sonatype OSS?**
 
 By default the plugin is configured to upload your artifacts to the release and snapshot repository URLs of Sonatype OSS.
 There's no additional configuration required. If you want to tweak the automatically generated POM file please you the
-`modifyPom` closure. Make sure to stick to the process described in the [Sonatype OSS Maven Repository usage guide](https://docs.sonatype.org/display/Repository/Sonatype+OSS+Maven+Repository+Usage+Guide).
+`modifyPom` closure. Make sure to stick to the process described in
+the [Central Repository Documentation](http://central.sonatype.org/pages/producers.html).
