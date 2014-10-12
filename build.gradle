@@ -4,20 +4,20 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.3'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.6'
     }
 }
 
 apply plugin: 'groovy'
 apply plugin: 'idea'
 apply plugin: 'maven-publish'
-apply plugin: 'bintray'
+apply plugin: 'com.jfrog.bintray'
 
-def compatibilityVersion = 1.5
+def compatibilityVersion = 1.6
 sourceCompatibility = compatibilityVersion
 targetCompatibility = compatibilityVersion
-group = 'org.gradle.api.plugins'
-version = '0.7.1'
+group = 'com.bmuschko'
+version = '2.0'
 
 repositories {
     mavenCentral()
@@ -26,8 +26,8 @@ repositories {
 dependencies {
     compile localGroovy()
     compile gradleApi()
-    testCompile("org.spockframework:spock-core:0.7-groovy-1.8") {
-        exclude module:'groovy-all'
+    testCompile('org.spockframework:spock-core:0.7-groovy-2.0') {
+        exclude group: 'org.codehaus.groovy'
     }
 }
 
@@ -135,11 +135,27 @@ bintray {
 
     pkg {
         repo = 'gradle-plugins'
-        name = 'gradle-nexus-plugin'
+        name = 'com.bmuschko:gradle-nexus-plugin'
+        desc = 'Gradle plugin for configuring and uploading artifacts to Sonatype Nexus.'
+        websiteUrl = "https://github.com/bmuschko/${project.name}"
+        issueTrackerUrl = "https://github.com/bmuschko/${project.name}/issues"
+        vcsUrl = "https://github.com/bmuschko/${project.name}.git"
         licenses = ['Apache-2.0']
+        labels = ['gradle', 'nexus', 'sonatype', 'binary', 'repository', 'publish', 'upload', 'pom', 'maven']
+        publicDownloadNumbers = true
+
+        version {
+            vcsTag = "v$project.version"
+            attributes = ['gradle-plugin': "com.bmuschko.nexus:${project.group}:${project.name}"]
+
+            gpg {
+                sign = true
+                passphrase = project.hasProperty('gpgPassphrase') ? project.getProperty('gpgPassphrase') : null
+            }
+        }
     }
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.9'
+    gradleVersion = '2.1'
 }

@@ -1,3 +1,10 @@
+### Version 2.0 (October 11, 2014)
+
+* Upgrade to Gradle Wrapper 2.1.
+* Changed package name to `com.bmuschko.gradle.vagrant`.
+* Changed group ID to `com.bmuschko`.
+* Adapted plugin IDs to be compatible with Gradle's plugin portal.
+
 ### Version 0.7.1 (June 8, 2014)
 
 * Request signing properties on the command line if not provided through `gradle.properties` - [Pull request 25](https://github.com/bmuschko/gradle-nexus-plugin/pull/25).

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.nexus.multiproject
+package com.bmuschko.gradle.nexus.multiproject
 
 /**
  * Nexus plugin upload task integration tests for multi-project builds.

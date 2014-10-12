@@ -11,10 +11,10 @@ to Sonatype OSS. Currently, Java and Groovy project artifact generation is suppo
 
 To use the Sonatype Nexus plugin, include in your build script:
 
-    apply plugin: 'nexus'
+    apply plugin: 'com.bmuschko.nexus'
 
 The plugin JAR needs to be defined in the classpath of your build script. It is directly available on
-[Bintray](https://bintray.com/bmuschko/gradle-plugins/gradle-nexus-plugin).
+[Bintray](https://bintray.com/bmuschko/gradle-plugins/com.bmuschko%3Agradle-nexus-plugin).
 Alternatively, you can download it from GitHub and deploy it to your local repository. The following code snippet shows an
 example on how to retrieve it from Bintray:
 
@@ -24,7 +24,7 @@ example on how to retrieve it from Bintray:
         }
 
         dependencies {
-            classpath 'org.gradle.api.plugins:gradle-nexus-plugin:0.7.1'
+            classpath 'com.bmuschko:gradle-nexus-plugin:2.0'
         }
     }
 

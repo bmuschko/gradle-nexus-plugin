@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.nexus
+package com.bmuschko.gradle.nexus
 
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
