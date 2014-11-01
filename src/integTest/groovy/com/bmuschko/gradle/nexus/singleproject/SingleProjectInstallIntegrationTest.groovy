@@ -72,23 +72,8 @@ group = '$projectCoordinates.group'
 nexus {
     attachTests = true
 }
-
-modifyPom {
-    project {
-        name 'myapp'
-        description 'My application'
-        inceptionYear '2012'
-
-        developers {
-            developer {
-                id 'bmuschko'
-                name 'Benjamin Muschko'
-                email 'benjamin.muschko@gmail.com'
-            }
-        }
-    }
-}
 """
+        buildFile << getDefaultPomMetaData()
         runTasks(integTestDir, MavenPlugin.INSTALL_TASK_NAME)
 
         then:
@@ -169,23 +154,8 @@ nexus {
     attachTests = true
     configuration = configurations.myConfig
 }
-
-modifyPom {
-    project {
-        name 'myapp'
-        description 'My application'
-        inceptionYear '2012'
-
-        developers {
-            developer {
-                id 'bmuschko'
-                name 'Benjamin Muschko'
-                email 'benjamin.muschko@gmail.com'
-            }
-        }
-    }
-}
 """
+        buildFile << getDefaultPomMetaData()
         runTasks(integTestDir, MavenPlugin.INSTALL_TASK_NAME)
 
         then:

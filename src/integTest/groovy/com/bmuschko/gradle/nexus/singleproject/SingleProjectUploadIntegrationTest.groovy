@@ -55,23 +55,8 @@ nexus {
     attachTests = true
     repositoryUrl = 'file://$integTestDir.canonicalPath/repo'
 }
-
-modifyPom {
-    project {
-        name 'myapp'
-        description 'My application'
-        inceptionYear '2012'
-
-        developers {
-            developer {
-                id 'bmuschko'
-                name 'Benjamin Muschko'
-                email 'benjamin.muschko@gmail.com'
-            }
-        }
-    }
-}
 """
+        buildFile << getDefaultPomMetaData()
         GradleProject project = runTasks(integTestDir, 'uploadArchives')
 
         then:
@@ -190,23 +175,8 @@ nexus {
     repositoryUrl = 'file://$integTestDir.canonicalPath/repo'
     configuration = configurations.myConfig
 }
-
-modifyPom {
-    project {
-        name 'myapp'
-        description 'My application'
-        inceptionYear '2012'
-
-        developers {
-            developer {
-                id 'bmuschko'
-                name 'Benjamin Muschko'
-                email 'benjamin.muschko@gmail.com'
-            }
-        }
-    }
-}
 """
+        buildFile << getDefaultPomMetaData()
         GradleProject project = runTasks(integTestDir, 'uploadMyConfig')
 
         then:

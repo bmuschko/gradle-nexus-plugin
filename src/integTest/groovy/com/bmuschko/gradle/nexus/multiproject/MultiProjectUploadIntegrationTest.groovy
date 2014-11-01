@@ -64,21 +64,7 @@ subprojects {
         repositoryUrl = 'file://$integTestDir.canonicalPath/repo'
     }
 
-    modifyPom {
-        project {
-            name 'myapp'
-            description 'My application'
-            inceptionYear '2012'
-
-            developers {
-                developer {
-                    id 'bmuschko'
-                    name 'Benjamin Muschko'
-                    email 'benjamin.muschko@gmail.com'
-                }
-            }
-        }
-    }
+    ${getDefaultPomMetaData()}
 }
 """
         runTasks(integTestDir, 'uploadArchives')
@@ -155,21 +141,7 @@ subprojects {
         configuration = configurations.myConfig
     }
 
-    modifyPom {
-        project {
-            name 'myapp'
-            description 'My application'
-            inceptionYear '2012'
-
-            developers {
-                developer {
-                    id 'bmuschko'
-                    name 'Benjamin Muschko'
-                    email 'benjamin.muschko@gmail.com'
-                }
-            }
-        }
-    }
+    ${getDefaultPomMetaData()}
 }
 """
         runTasks(integTestDir, 'uploadMyConfig')

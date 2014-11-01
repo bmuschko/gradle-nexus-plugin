@@ -79,6 +79,26 @@ buildscript {
         file
     }
 
+    protected String getDefaultPomMetaData() {
+"""
+modifyPom {
+    project {
+        name 'myapp'
+        description 'My application'
+        inceptionYear '2012'
+
+        developers {
+            developer {
+                id 'bmuschko'
+                name 'Benjamin Muschko'
+                email 'benjamin.muschko@gmail.com'
+            }
+        }
+    }
+}
+"""
+    }
+
     protected void assertExistingFiles(File dir, List<String> requiredFilenames) {
         assertExistingDirectory(dir)
         def dirFileNames = dir.listFiles()*.name
