@@ -242,7 +242,7 @@ class NexusPlugin implements Plugin<Project> {
      * @return Flag
      */
     private boolean hasJavaPlugin(Project project) {
-        project.plugins.hasPlugin(JavaPlugin)
+        hasPlugin(project, JavaPlugin)
     }
 
     /**
@@ -252,6 +252,10 @@ class NexusPlugin implements Plugin<Project> {
      * @return Flag
      */
     private boolean hasGroovyPlugin(Project project) {
-        project.plugins.hasPlugin(GroovyPlugin)
+        hasPlugin(project, GroovyPlugin)
+    }
+
+    private boolean hasPlugin(Project project, Class<? extends Plugin> pluginClass) {
+        project.plugins.hasPlugin(pluginClass)
     }
 }
