@@ -127,4 +127,20 @@ buildscript {
             connection?.close()
         }
     }
+
+    static boolean hasSigningKey() {
+        File gradlePropsFile = new File(System.getProperty('user.home'), '.gradle/gradle.properties')
+
+        if(!gradlePropsFile.exists()) {
+            return false
+        }
+
+        Properties properties = new Properties()
+
+        gradlePropsFile.withInputStream {
+            properties.load(it)
+        }
+
+        properties['signing.keyId'] != null
+    }
 }
