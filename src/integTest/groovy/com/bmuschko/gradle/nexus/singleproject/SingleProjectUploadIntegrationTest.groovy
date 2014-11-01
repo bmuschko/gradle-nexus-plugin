@@ -84,6 +84,62 @@ modifyPom {
         assertCorrectPomXml(new File(repoDir, "${project.name}-1.0.pom"))
     }
 
+    def "Uploads all configured JARs, customized metadata and signature artifacts for provided configuration"() {
+        when:
+        buildFile << """
+version = '1.0'
+group = 'org.gradle.mygroup'
+
+configurations {
+    provided
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    provided 'javax.servlet:javax.servlet-api:3.1.0'
+}
+
+nexus {
+    attachTests = true
+    repositoryUrl = 'file://$integTestDir.canonicalPath/repo'
+}
+
+modifyPom {
+    project {
+        dependencies {
+            project.configurations.provided.allDependencies.each { dep ->
+                dependency {
+                    groupId dep.group
+                    artifactId dep.name
+                    version dep.version
+                    scope 'provided'
+                }
+            }
+        }
+    }
+}
+"""
+        GradleProject project = runTasks(integTestDir, 'uploadArchives')
+
+        then:
+        File repoDir = new File(integTestDir, 'repo/org/gradle/mygroup/integTest/1.0')
+        def expectedFilenames = ["${project.name}-1.0.jar", "${project.name}-1.0.jar.asc", "${project.name}-1.0.pom",
+                                 "${project.name}-1.0.pom.asc", "${project.name}-1.0-javadoc.jar", "${project.name}-1.0-javadoc.jar.asc",
+                                 "${project.name}-1.0-sources.jar", "${project.name}-1.0-sources.jar.asc", "${project.name}-1.0-tests.jar",
+                                 "${project.name}-1.0-tests.jar.asc"]
+        assertExistingFiles(repoDir, expectedFilenames)
+        def pomXml = new XmlSlurper().parse(new File(repoDir, "${project.name}-1.0.pom"))
+        assert pomXml.dependencies.size() == 1
+        def servletDependency = pomXml.dependencies.dependency[0]
+        assert servletDependency.groupId.text() == 'javax.servlet'
+        assert servletDependency.artifactId.text() == 'javax.servlet-api'
+        assert servletDependency.version.text() == '3.1.0'
+        assert servletDependency.scope.text() == 'provided'
+    }
+
     def "Uploads all configured JARs, metadata and signature artifacts for release version with custom configuration"() {
         when:
         buildFile << """
