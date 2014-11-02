@@ -77,6 +77,7 @@ group = 'org.gradle.mygroup'
 
 configurations {
     provided
+    compile.extendsFrom provided
 }
 
 repositories {
@@ -84,6 +85,8 @@ repositories {
 }
 
 dependencies {
+    compile 'commons-lang:commons-lang:2.6'
+    runtime 'mysql:mysql-connector-java:5.1.13'
     provided 'javax.servlet:javax.servlet-api:3.1.0'
 }
 
@@ -94,7 +97,18 @@ nexus {
 
 modifyPom {
     project {
+        def generatedDeps = dependencies
+
         dependencies {
+            generatedDeps.each { dep ->
+                dependency {
+                    groupId dep.groupId
+                    artifactId dep.artifactId
+                    version dep.version
+                    scope dep.scope
+                }
+            }
+
             project.configurations.provided.allDependencies.each { dep ->
                 dependency {
                     groupId dep.group
@@ -117,8 +131,18 @@ modifyPom {
                                  "${project.name}-1.0-tests.jar.asc"]
         assertExistingFiles(repoDir, expectedFilenames)
         def pomXml = new XmlSlurper().parse(new File(repoDir, "${project.name}-1.0.pom"))
-        assert pomXml.dependencies.size() == 1
-        def servletDependency = pomXml.dependencies.dependency[0]
+        assert pomXml.dependencies.dependency.size() == 3
+        def mysqlDependency = pomXml.dependencies.dependency[0]
+        assert mysqlDependency.groupId.text() == 'mysql'
+        assert mysqlDependency.artifactId.text() == 'mysql-connector-java'
+        assert mysqlDependency.version.text() == '5.1.13'
+        assert mysqlDependency.scope.text() == 'runtime'
+        def commonsLangDependency = pomXml.dependencies.dependency[1]
+        assert commonsLangDependency.groupId.text() == 'commons-lang'
+        assert commonsLangDependency.artifactId.text() == 'commons-lang'
+        assert commonsLangDependency.version.text() == '2.6'
+        assert commonsLangDependency.scope.text() == 'compile'
+        def servletDependency = pomXml.dependencies.dependency[2]
         assert servletDependency.groupId.text() == 'javax.servlet'
         assert servletDependency.artifactId.text() == 'javax.servlet-api'
         assert servletDependency.version.text() == '3.1.0'
