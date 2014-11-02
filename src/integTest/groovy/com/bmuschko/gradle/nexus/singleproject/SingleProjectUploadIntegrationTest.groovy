@@ -16,6 +16,9 @@
 package com.bmuschko.gradle.nexus.singleproject
 
 import org.gradle.tooling.model.GradleProject
+import spock.lang.IgnoreIf
+
+import static com.bmuschko.gradle.nexus.AbstractIntegrationTest.hasSigningKey
 
 /**
  * Nexus plugin upload task integration tests.
@@ -23,6 +26,7 @@ import org.gradle.tooling.model.GradleProject
  * @author Benjamin Muschko
  */
 class SingleProjectUploadIntegrationTest extends SingleProjectBuildIntegrationTest {
+    @IgnoreIf({ !hasSigningKey() })
     def "Uploads all configured JARs, metadata and signature artifacts for release version with default configuration"() {
         when:
         buildFile << """
@@ -45,6 +49,7 @@ nexus {
         assertExistingFiles(repoDir, expectedFilenames)
     }
 
+    @IgnoreIf({ !hasSigningKey() })
     def "Uploads all configured JARs, customized metadata and signature artifacts with default configuration"() {
         when:
         buildFile << """
@@ -69,7 +74,7 @@ nexus {
         assertCorrectPomXml(new File(repoDir, "${project.name}-1.0.pom"))
     }
 
-    def "Uploads all configured JARs, customized metadata and signature artifacts for provided configuration"() {
+    def "Uploads all configured JARs and customized metadata for provided configuration"() {
         when:
         buildFile << """
 version = '1.0'
@@ -91,6 +96,7 @@ dependencies {
 }
 
 nexus {
+    sign = false
     attachTests = true
     repositoryUrl = 'file://$integTestDir.canonicalPath/repo'
 }
@@ -125,10 +131,8 @@ modifyPom {
 
         then:
         File repoDir = new File(integTestDir, 'repo/org/gradle/mygroup/integTest/1.0')
-        def expectedFilenames = ["${project.name}-1.0.jar", "${project.name}-1.0.jar.asc", "${project.name}-1.0.pom",
-                                 "${project.name}-1.0.pom.asc", "${project.name}-1.0-javadoc.jar", "${project.name}-1.0-javadoc.jar.asc",
-                                 "${project.name}-1.0-sources.jar", "${project.name}-1.0-sources.jar.asc", "${project.name}-1.0-tests.jar",
-                                 "${project.name}-1.0-tests.jar.asc"]
+        def expectedFilenames = ["${project.name}-1.0.jar", "${project.name}-1.0.pom", "${project.name}-1.0-javadoc.jar",
+                                 "${project.name}-1.0-sources.jar", "${project.name}-1.0-tests.jar"]
         assertExistingFiles(repoDir, expectedFilenames)
         def pomXml = new XmlSlurper().parse(new File(repoDir, "${project.name}-1.0.pom"))
         assert pomXml.dependencies.dependency.size() == 3
@@ -149,6 +153,7 @@ modifyPom {
         assert servletDependency.scope.text() == 'provided'
     }
 
+    @IgnoreIf({ !hasSigningKey() })
     def "Uploads all configured JARs, metadata and signature artifacts for release version with custom configuration"() {
         when:
         buildFile << """
@@ -180,6 +185,7 @@ nexus {
         assertExistingFiles(repoDir, expectedFilenames)
     }
 
+    @IgnoreIf({ !hasSigningKey() })
     def "Uploads all configured JARs, customized metadata and signature artifacts with custom configuration"() {
         when:
         buildFile << """
@@ -266,6 +272,7 @@ nexus {
         assertNoSignatureFiles(repoDir)
     }
 
+    @IgnoreIf({ !hasSigningKey() })
     def "Uploads all configured JARs, metadata and signature artifacts for snapshot version with default configuration"() {
         when:
         buildFile << """
@@ -289,6 +296,7 @@ nexus {
         assertExistingFiles(repoDir, expectedFilenames)
     }
 
+    @IgnoreIf({ !hasSigningKey() })
     def "Uploads all configured JARs, metadata and signature artifacts for snapshot version with custom configuration"() {
         when:
         buildFile << """

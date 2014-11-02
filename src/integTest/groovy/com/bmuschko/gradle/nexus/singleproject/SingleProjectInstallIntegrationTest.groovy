@@ -16,7 +16,9 @@
 package com.bmuschko.gradle.nexus.singleproject
 
 import org.gradle.api.plugins.MavenPlugin
+import spock.lang.IgnoreIf
 
+import static com.bmuschko.gradle.nexus.AbstractIntegrationTest.hasSigningKey
 import static org.spockframework.util.Assert.fail
 
 /**
@@ -27,6 +29,7 @@ import static org.spockframework.util.Assert.fail
 class SingleProjectInstallIntegrationTest extends SingleProjectBuildIntegrationTest {
     final static M2_HOME_DIR = new File(System.properties['user.home'], '.m2/repository')
 
+    @IgnoreIf({ !hasSigningKey() })
     def "Installs all configured JARs, metadata and signature artifacts for release version with default configuration"() {
         setup:
         def projectCoordinates = [group: 'org.gradle.mygroup', name: 'integTest', version: '1.0']
@@ -58,6 +61,7 @@ nexus {
         assertExistingFiles(installationDir, expectedFilenames)
     }
 
+    @IgnoreIf({ !hasSigningKey() })
     def "Installs all configured JARs, customized metadata and signature artifacts with default configuration"() {
         setup:
         def projectCoordinates = [group: 'org.gradle.mygroup', name: 'integTest', version: '1.0']
@@ -91,6 +95,7 @@ nexus {
         assertCorrectPomXml(new File(installationDir, "${projectCoordinates.name}-${projectCoordinates.version}.pom"))
     }
 
+    @IgnoreIf({ !hasSigningKey() })
     def "Installs all configured JARs, metadata and signature artifacts for release version with custom configuration"() {
         setup:
         def projectCoordinates = [group: 'org.gradle.mygroup', name: 'integTest', version: '1.0']
@@ -131,6 +136,7 @@ nexus {
         assertExistingFiles(installationDir, expectedFilenames)
     }
 
+    @IgnoreIf({ !hasSigningKey() })
     def "Installs all configured JARs, customized metadata and signature artifacts with custom configuration"() {
         setup:
         def projectCoordinates = [group: 'org.gradle.mygroup', name: 'integTest', version: '1.0']
@@ -173,6 +179,7 @@ nexus {
         assertCorrectPomXml(new File(installationDir, "${projectCoordinates.name}-${projectCoordinates.version}.pom"))
     }
 
+    @IgnoreIf({ !hasSigningKey() })
     def "Installs all configured JARs, metadata and signature artifacts for snapshot version with default configuration"() {
         setup:
         def projectCoordinates = [group: 'org.gradle.mygroup', name: 'integTest', version: '1.0-SNAPSHOT']
@@ -204,6 +211,7 @@ nexus {
         assertExistingFiles(installationDir, expectedFilenames)
     }
 
+    @IgnoreIf({ !hasSigningKey() })
     def "Installs all configured JARs, metadata and signature artifacts for snapshot version with custom configuration"() {
         setup:
         def projectCoordinates = [group: 'org.gradle.mygroup', name: 'integTest', version: '1.0-SNAPSHOT']

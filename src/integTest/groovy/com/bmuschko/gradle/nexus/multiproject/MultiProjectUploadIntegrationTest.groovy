@@ -15,6 +15,10 @@
  */
 package com.bmuschko.gradle.nexus.multiproject
 
+import spock.lang.IgnoreIf
+
+import static com.bmuschko.gradle.nexus.AbstractIntegrationTest.hasSigningKey
+
 /**
  * Nexus plugin upload task integration tests for multi-project builds.
  *
@@ -22,6 +26,7 @@ package com.bmuschko.gradle.nexus.multiproject
  * @author Dirk Moebius
  */
 class MultiProjectUploadIntegrationTest extends MultiProjectBuildIntegrationTest {
+    @IgnoreIf({ !hasSigningKey() })
     def "Uploads all configured JARs, metadata and signature artifacts for release version with default configuration"() {
         when:
         buildFile << """
@@ -50,6 +55,7 @@ subprojects {
         }
     }
 
+    @IgnoreIf({ !hasSigningKey() })
     def "Uploads all configured JARs, customized metadata and signature artifacts with default configuration"() {
         when:
         buildFile << """
@@ -81,6 +87,7 @@ subprojects {
         }
     }
 
+    @IgnoreIf({ !hasSigningKey() })
     def "Uploads all configured JARs, metadata and signature artifacts for release version with custom configuration"() {
         when:
         buildFile << """
@@ -118,6 +125,7 @@ subprojects {
         }
     }
 
+    @IgnoreIf({ !hasSigningKey() })
     def "Uploads all configured JARs, customized metadata and signature artifacts with custom configuration"() {
         when:
         buildFile << """
@@ -223,6 +231,7 @@ subprojects {
         }
     }
 
+    @IgnoreIf({ !hasSigningKey() })
     def "Uploads all configured JARs, metadata and signature artifacts for snapshot version with default configuration"() {
         when:
         buildFile << """
@@ -252,6 +261,7 @@ subprojects {
         }
     }
 
+    @IgnoreIf({ !hasSigningKey() })
     def "Uploads all configured JARs, metadata and signature artifacts for snapshot version with custom configuration"() {
         when:
         buildFile << """
