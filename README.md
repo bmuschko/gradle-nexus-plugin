@@ -24,7 +24,7 @@ example on how to retrieve it from Bintray:
         }
 
         dependencies {
-            classpath 'com.bmuschko:gradle-nexus-plugin:2.0'
+            classpath 'com.bmuschko:gradle-nexus-plugin:2.0.1'
         }
     }
 

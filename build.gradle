@@ -17,7 +17,7 @@ def compatibilityVersion = 1.6
 sourceCompatibility = compatibilityVersion
 targetCompatibility = compatibilityVersion
 group = 'com.bmuschko'
-version = '2.0'
+version = '2.0.1'
 
 repositories {
     mavenCentral()
@@ -90,9 +90,15 @@ task groovydocJar(type: Jar, dependsOn: groovydoc) {
     from groovydoc.destinationDir
 }
 
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier 'javadoc'
+    from javadoc.destinationDir
+}
+
 artifacts {
     archives sourcesJar
     archives groovydocJar
+    archives javadocJar
 }
 
 publishing {
@@ -101,11 +107,13 @@ publishing {
             from components.java
             artifact sourcesJar
             artifact groovydocJar
+            artifact javadocJar
 
             pom.withXml {
                 def root = asNode()
                 root.appendNode('name', 'Gradle Sonatype Nexus plugin')
                 root.appendNode('description', 'Gradle plugin for configuring and upload artifacts to Sonatype Nexus.')
+                root.appendNode('url', 'https://github.com/bmuschko/gradle-nexus-plugin')
                 root.appendNode('inceptionYear', '2012')
 
                 def scm = root.appendNode('scm')

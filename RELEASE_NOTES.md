@@ -1,3 +1,8 @@
+### Version 2.0.1 (November 2, 2014)
+
+* Generate Javadoc JAR and added URL to POM metadata to make Maven Central happy.
+* Test case cleanups. Only run some of the tests if signing is configured properly.
+
 ### Version 2.0 (October 11, 2014)
 
 * Upgrade to Gradle Wrapper 2.1.
