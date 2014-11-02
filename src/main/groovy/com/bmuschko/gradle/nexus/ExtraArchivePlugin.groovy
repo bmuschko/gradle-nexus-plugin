@@ -2,6 +2,7 @@ package com.bmuschko.gradle.nexus
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaPlugin
@@ -53,17 +54,11 @@ class ExtraArchivePlugin implements Plugin<Project> {
 
     private void configureJavadocJarTask(Project project, ExtraArchivePluginExtension extension) {
         if(extension.javadoc) {
-            Jar javaDocJarTask = project.task(JAVADOC_JAR_TASK_NAME, type: Jar) {
+            project.task(JAVADOC_JAR_TASK_NAME, type: Jar) {
                 classifier = 'javadoc'
                 group = JAR_TASK_GROUP
                 description = 'Assembles a jar archive containing the generated Javadoc API documentation of this project.'
-            }
-
-            if(hasGroovyPlugin(project)) {
-                javaDocJarTask.from project.groovydoc
-            }
-            else {
-                javaDocJarTask.from project.javadoc
+                from getDocTask(project)
             }
         }
     }
@@ -80,5 +75,9 @@ class ExtraArchivePlugin implements Plugin<Project> {
 
     private boolean hasPlugin(Project project, Class<? extends Plugin> pluginClass) {
         project.plugins.hasPlugin(pluginClass)
+    }
+
+    private Task getDocTask(Project project) {
+        hasGroovyPlugin(project) ? project.tasks.getByName(GroovyPlugin.GROOVYDOC_TASK_NAME) : project.tasks.getByName(JavaPlugin.JAVADOC_TASK_NAME)
     }
 }

@@ -20,6 +20,7 @@ import com.bmuschko.gradle.nexus.ExtraArchivePlugin
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.Task
 import spock.lang.Issue
+import spock.lang.Unroll
 
 /**
  * Nexus plugin archive task integration tests.
@@ -27,10 +28,13 @@ import spock.lang.Issue
  * @author Benjamin Muschko
  */
 class SingleProjectArchiveTaskIntegrationTest extends AbstractIntegrationTest {
-    def "Adds sources and Javadoc JAR tasks by default for Java project"() {
+    static final List<String> VERIFIED_PLUGIN_IDENTIFIERS = ['java', 'groovy']
+
+    @Unroll
+    def "Adds sources and Javadoc JAR tasks by default for project with plugin '#pluginIdentifier'"() {
         given:
         buildFile << """
-apply plugin: 'java'
+apply plugin: '$pluginIdentifier'
 apply plugin: com.bmuschko.gradle.nexus.NexusPlugin
 """
 
@@ -38,39 +42,23 @@ apply plugin: com.bmuschko.gradle.nexus.NexusPlugin
         GradleProject project = runTasks(integTestDir, 'tasks')
 
         then:
-        Task sourcesJarTask = project.tasks.find { task -> task.name == ExtraArchivePlugin.SOURCES_JAR_TASK_NAME }
+        Task sourcesJarTask = findTask(project, ExtraArchivePlugin.SOURCES_JAR_TASK_NAME)
         sourcesJarTask
         sourcesJarTask.description == 'Assembles a jar archive containing the main sources of this project.'
-        Task javadocJarTask = project.tasks.find { task -> task.name == ExtraArchivePlugin.JAVADOC_JAR_TASK_NAME }
+        Task javadocJarTask = findTask(project, ExtraArchivePlugin.JAVADOC_JAR_TASK_NAME)
         javadocJarTask
         javadocJarTask.description == 'Assembles a jar archive containing the generated Javadoc API documentation of this project.'
-        !project.tasks.find { task -> task.name == ExtraArchivePlugin.TESTS_JAR_TASK_NAME }
+        !findTask(project, ExtraArchivePlugin.TESTS_JAR_TASK_NAME)
+
+        where:
+        pluginIdentifier << VERIFIED_PLUGIN_IDENTIFIERS
     }
 
-    def "Adds sources and Javadoc JAR tasks by default for Groovy project"() {
-        given:
-        buildFile << """
-apply plugin: 'java'
-apply plugin: com.bmuschko.gradle.nexus.NexusPlugin
-"""
-
-        when:
-        GradleProject project = runTasks(integTestDir, 'tasks')
-
-        then:
-        Task sourcesJarTask = project.tasks.find { task -> task.name == ExtraArchivePlugin.SOURCES_JAR_TASK_NAME }
-        sourcesJarTask
-        sourcesJarTask.description == 'Assembles a jar archive containing the main sources of this project.'
-        Task javadocJarTask = project.tasks.find { task -> task.name == ExtraArchivePlugin.JAVADOC_JAR_TASK_NAME }
-        javadocJarTask
-        javadocJarTask.description == 'Assembles a jar archive containing the generated Javadoc API documentation of this project.'
-        !project.tasks.find { task -> task.name == ExtraArchivePlugin.TESTS_JAR_TASK_NAME }
-    }
-
-    def "Adds tests JAR task if configured"() {
+    @Unroll
+    def "Adds tests JAR task if configured for project with plugin '#pluginIdentifier'"() {
         when:
         buildFile << """
-apply plugin: 'java'
+apply plugin: '$pluginIdentifier'
 apply plugin: com.bmuschko.gradle.nexus.NexusPlugin
 
 extraArchive {
@@ -80,21 +68,25 @@ extraArchive {
         GradleProject project = runTasks(integTestDir, 'tasks')
 
         then:
-        Task sourcesJarTask = project.tasks.find { task -> task.name == ExtraArchivePlugin.SOURCES_JAR_TASK_NAME }
+        Task sourcesJarTask = findTask(project, ExtraArchivePlugin.SOURCES_JAR_TASK_NAME)
         sourcesJarTask
         sourcesJarTask.description == 'Assembles a jar archive containing the main sources of this project.'
-        Task javadocJarTask = project.tasks.find { task -> task.name == ExtraArchivePlugin.JAVADOC_JAR_TASK_NAME }
+        Task javadocJarTask = findTask(project, ExtraArchivePlugin.JAVADOC_JAR_TASK_NAME)
         javadocJarTask
         javadocJarTask.description == 'Assembles a jar archive containing the generated Javadoc API documentation of this project.'
-        Task testsJarTask = project.tasks.find { task -> task.name == ExtraArchivePlugin.TESTS_JAR_TASK_NAME}
+        Task testsJarTask = findTask(project, ExtraArchivePlugin.TESTS_JAR_TASK_NAME)
         testsJarTask
         testsJarTask.description == 'Assembles a jar archive containing the test sources of this project.'
+
+        where:
+        pluginIdentifier << VERIFIED_PLUGIN_IDENTIFIERS
     }
 
-    def "Disables additional JAR creation"() {
+    @Unroll
+    def "Disables additional JAR creation for project with plugin '#pluginIdentifier'"() {
         when:
         buildFile << """
-apply plugin: 'java'
+apply plugin: '$pluginIdentifier'
 apply plugin: com.bmuschko.gradle.nexus.NexusPlugin
 
 extraArchive {
@@ -105,27 +97,38 @@ extraArchive {
         GradleProject project = runTasks(integTestDir, 'tasks')
 
         then:
-        !project.tasks.find { task -> task.name == ExtraArchivePlugin.SOURCES_JAR_TASK_NAME}
-        !project.tasks.find { task -> task.name == ExtraArchivePlugin.JAVADOC_JAR_TASK_NAME}
-        !project.tasks.find { task -> task.name == ExtraArchivePlugin.TESTS_JAR_TASK_NAME}
+        !findTask(project, ExtraArchivePlugin.SOURCES_JAR_TASK_NAME)
+        !findTask(project, ExtraArchivePlugin.JAVADOC_JAR_TASK_NAME)
+        !findTask(project, ExtraArchivePlugin.TESTS_JAR_TASK_NAME)
+
+        where:
+        pluginIdentifier << VERIFIED_PLUGIN_IDENTIFIERS
     }
 
     @Issue("https://github.com/bmuschko/gradle-nexus-plugin/issues/8")
-    def "Java plugin can be applied after Nexus plugin"() {
+    @Unroll
+    def "Plugin '#pluginIdentifier' can be applied after Nexus plugin"() {
         given:
         buildFile << """
 apply plugin: com.bmuschko.gradle.nexus.NexusPlugin
-apply plugin: 'java'
+apply plugin: '$pluginIdentifier'
 """
 
         when:
         GradleProject project = runTasks(integTestDir, 'tasks')
 
         then:
-        Task sourcesJarTask = project.tasks.find { task -> task.name == ExtraArchivePlugin.SOURCES_JAR_TASK_NAME }
+        Task sourcesJarTask = findTask(project, ExtraArchivePlugin.SOURCES_JAR_TASK_NAME)
         sourcesJarTask
-        Task javadocJarTask = project.tasks.find { task -> task.name == ExtraArchivePlugin.JAVADOC_JAR_TASK_NAME }
+        Task javadocJarTask = findTask(project, ExtraArchivePlugin.JAVADOC_JAR_TASK_NAME)
         javadocJarTask
-        !project.tasks.find { task -> task.name == ExtraArchivePlugin.TESTS_JAR_TASK_NAME }
+        !findTask(project, ExtraArchivePlugin.TESTS_JAR_TASK_NAME)
+
+        where:
+        pluginIdentifier << VERIFIED_PLUGIN_IDENTIFIERS
+    }
+
+    private Task findTask(GradleProject project, String taskName) {
+        project.tasks.find { task -> task.name == taskName }
     }
 }
