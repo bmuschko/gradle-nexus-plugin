@@ -1,3 +1,8 @@
+### Version 2.1 (November 2, 2014)
+
+* The functionality of adding archive task is now part of the `ExtraArchivePlugin`.
+* Extra archives need to be configured via the extension `extraArchive`.
+
 ### Version 2.0.1 (November 2, 2014)
 
 * Generate Javadoc JAR and added URL to POM metadata to make Maven Central happy.

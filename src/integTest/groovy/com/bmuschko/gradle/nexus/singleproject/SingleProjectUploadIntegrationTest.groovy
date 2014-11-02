@@ -26,6 +26,14 @@ import static com.bmuschko.gradle.nexus.AbstractIntegrationTest.hasSigningKey
  * @author Benjamin Muschko
  */
 class SingleProjectUploadIntegrationTest extends SingleProjectBuildIntegrationTest {
+    def setup() {
+        buildFile << """
+extraArchive {
+    tests = true
+}
+"""
+    }
+
     @IgnoreIf({ !hasSigningKey() })
     def "Uploads all configured JARs, metadata and signature artifacts for release version with default configuration"() {
         when:
@@ -34,7 +42,6 @@ version = '1.0'
 group = 'org.gradle.mygroup'
 
 nexus {
-    attachTests = true
     repositoryUrl = 'file://$integTestDir.canonicalPath/repo'
 }
 """
@@ -57,7 +64,6 @@ version = '1.0'
 group = 'org.gradle.mygroup'
 
 nexus {
-    attachTests = true
     repositoryUrl = 'file://$integTestDir.canonicalPath/repo'
 }
 """
@@ -97,7 +103,6 @@ dependencies {
 
 nexus {
     sign = false
-    attachTests = true
     repositoryUrl = 'file://$integTestDir.canonicalPath/repo'
 }
 
@@ -169,7 +174,6 @@ artifacts {
 }
 
 nexus {
-    attachTests = true
     repositoryUrl = 'file://$integTestDir.canonicalPath/repo'
     configuration = configurations.myConfig
 }
@@ -201,7 +205,6 @@ artifacts {
 }
 
 nexus {
-    attachTests = true
     repositoryUrl = 'file://$integTestDir.canonicalPath/repo'
     configuration = configurations.myConfig
 }
@@ -226,7 +229,6 @@ version = '1.0'
 group = 'org.gradle.mygroup'
 
 nexus {
-    attachTests = true
     repositoryUrl = 'file://$integTestDir.canonicalPath/repo'
     sign = false
 }
@@ -256,7 +258,6 @@ artifacts {
 }
 
 nexus {
-    attachTests = true
     repositoryUrl = 'file://$integTestDir.canonicalPath/repo'
     sign = false
     configuration = configurations.myConfig
@@ -280,7 +281,6 @@ version = '1.0-SNAPSHOT'
 group = 'org.gradle.mygroup'
 
 nexus {
-    attachTests = true
     snapshotRepositoryUrl = 'file://$integTestDir.canonicalPath/repo'
 }
 """
@@ -312,7 +312,6 @@ artifacts {
 }
 
 nexus {
-    attachTests = true
     snapshotRepositoryUrl = 'file://$integTestDir.canonicalPath/repo'
     configuration = configurations.myConfig
 }
@@ -336,7 +335,6 @@ version = '1.0-SNAPSHOT'
 group = 'org.gradle.mygroup'
 
 nexus {
-    attachTests = true
     snapshotRepositoryUrl = 'file://$integTestDir.canonicalPath/repo'
     sign = false
 }
@@ -367,7 +365,6 @@ artifacts {
 }
 
 nexus {
-    attachTests = true
     snapshotRepositoryUrl = 'file://$integTestDir.canonicalPath/repo'
     sign = false
     configuration = configurations.myConfig

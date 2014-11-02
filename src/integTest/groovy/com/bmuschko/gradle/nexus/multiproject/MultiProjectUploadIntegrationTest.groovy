@@ -26,6 +26,16 @@ import static com.bmuschko.gradle.nexus.AbstractIntegrationTest.hasSigningKey
  * @author Dirk Moebius
  */
 class MultiProjectUploadIntegrationTest extends MultiProjectBuildIntegrationTest {
+    def setup() {
+        buildFile << """
+subprojects {
+    extraArchive {
+        tests = true
+    }
+}
+"""
+    }
+
     @IgnoreIf({ !hasSigningKey() })
     def "Uploads all configured JARs, metadata and signature artifacts for release version with default configuration"() {
         when:
@@ -37,7 +47,6 @@ allprojects {
 
 subprojects {
     nexus {
-        attachTests = true
         repositoryUrl = 'file://$integTestDir.canonicalPath/repo'
     }
 }
@@ -66,7 +75,6 @@ allprojects {
 
 subprojects {
     nexus {
-        attachTests = true
         repositoryUrl = 'file://$integTestDir.canonicalPath/repo'
     }
 
@@ -106,7 +114,6 @@ subprojects {
     }
 
     nexus {
-        attachTests = true
         repositoryUrl = 'file://$integTestDir.canonicalPath/repo'
         configuration = configurations.myConfig
     }
@@ -144,7 +151,6 @@ subprojects {
     }
 
     nexus {
-        attachTests = true
         repositoryUrl = 'file://$integTestDir.canonicalPath/repo'
         configuration = configurations.myConfig
     }
@@ -176,7 +182,6 @@ allprojects {
 
 subprojects {
     nexus {
-        attachTests = true
         repositoryUrl = 'file://$integTestDir.canonicalPath/repo'
         sign = false
     }
@@ -212,7 +217,6 @@ subprojects {
     }
 
     nexus {
-        attachTests = true
         repositoryUrl = 'file://$integTestDir.canonicalPath/repo'
         sign = false
         configuration = configurations.myConfig
@@ -242,7 +246,6 @@ allprojects {
 
 subprojects {
     nexus {
-        attachTests = true
         snapshotRepositoryUrl = 'file://$integTestDir.canonicalPath/repo'
     }
 }
@@ -280,7 +283,6 @@ subprojects {
     }
 
     nexus {
-        attachTests = true
         snapshotRepositoryUrl = 'file://$integTestDir.canonicalPath/repo'
         configuration = configurations.myConfig
     }
@@ -310,7 +312,6 @@ allprojects {
 
 subprojects {
     nexus {
-        attachTests = true
         snapshotRepositoryUrl = 'file://$integTestDir.canonicalPath/repo'
         sign = false
     }
@@ -347,7 +348,6 @@ subprojects {
     }
 
     nexus {
-        attachTests = true
         snapshotRepositoryUrl = 'file://$integTestDir.canonicalPath/repo'
         sign = false
         configuration = configurations.myConfig

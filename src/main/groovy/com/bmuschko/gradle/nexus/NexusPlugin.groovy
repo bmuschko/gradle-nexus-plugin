@@ -18,14 +18,11 @@ package com.bmuschko.gradle.nexus
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.maven.MavenDeployment
 import org.gradle.api.execution.TaskExecutionGraph
-import org.gradle.api.plugins.BasePlugin
-import org.gradle.api.plugins.GroovyPlugin
-import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.MavenPlugin
 import org.gradle.api.tasks.Upload
-import org.gradle.api.tasks.bundling.Jar
 import org.gradle.plugins.signing.SigningPlugin
 
 /**
@@ -34,7 +31,6 @@ import org.gradle.plugins.signing.SigningPlugin
  * @author Benjamin Muschko
  */
 class NexusPlugin implements Plugin<Project> {
-    static final String JAR_TASK_GROUP = BasePlugin.BUILD_GROUP
     static final String NEXUS_USERNAME = 'nexusUsername'
     static final String NEXUS_PASSWORD = 'nexusPassword'
     static final String SIGNING_KEY_ID = 'signing.keyId'
@@ -43,6 +39,7 @@ class NexusPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
+        project.plugins.apply(ExtraArchivePlugin)
         project.plugins.apply(MavenPlugin)
         project.plugins.apply(SigningPlugin)
 
@@ -57,9 +54,9 @@ class NexusPlugin implements Plugin<Project> {
     private void configureTasks(Project project, NexusPluginExtension extension) {
         project.afterEvaluate {
             changeInstallTaskConfiguration(project, extension)
-            configureSourcesJarTask(project, extension)
-            configureTestsJarTask(project, extension)
-            configureJavadocJarTask(project, extension)
+            addArchiveTaskToOutgoingArtifacts(project, extension, ExtraArchivePlugin.SOURCES_JAR_TASK_NAME)
+            addArchiveTaskToOutgoingArtifacts(project, extension, ExtraArchivePlugin.TESTS_JAR_TASK_NAME)
+            addArchiveTaskToOutgoingArtifacts(project, extension, ExtraArchivePlugin.JAVADOC_JAR_TASK_NAME)
         }
     }
 
@@ -69,48 +66,11 @@ class NexusPlugin implements Plugin<Project> {
         }
     }
 
-    private void configureSourcesJarTask(Project project, NexusPluginExtension extension) {
-        if(extension.attachSources) {
-            Jar sourcesJarTask = project.task('sourcesJar', type: Jar) {
-                classifier = 'sources'
-                group = JAR_TASK_GROUP
-                description = 'Assembles a jar archive containing the main sources of this project.'
-                from project.sourceSets.main.allSource
-            }
+    private void addArchiveTaskToOutgoingArtifacts(Project project, NexusPluginExtension extension, String taskName) {
+        Task archiveTask = project.tasks.findByName(taskName)
 
-            project.artifacts.add(extension.configuration, sourcesJarTask)
-        }
-    }
-
-    private void configureTestsJarTask(Project project, NexusPluginExtension extension) {
-        if(extension.attachTests) {
-            Jar testsJarTask = project.task('testsJar', type: Jar) {
-                classifier = 'tests'
-                group = JAR_TASK_GROUP
-                description = 'Assembles a jar archive containing the test sources of this project.'
-                from project.sourceSets.test.output
-            }
-
-            project.artifacts.add(extension.configuration, testsJarTask)
-        }
-    }
-
-    private void configureJavadocJarTask(Project project, NexusPluginExtension extension) {
-        if(extension.attachJavadoc) {
-            Jar javaDocJarTask = project.task('javadocJar', type: Jar) {
-                classifier = 'javadoc'
-                group = JAR_TASK_GROUP
-                description = 'Assembles a jar archive containing the generated Javadoc API documentation of this project.'
-            }
-
-            if(hasGroovyPlugin(project)) {
-                javaDocJarTask.from project.groovydoc
-            }
-            else if(hasJavaPlugin(project)) {
-                javaDocJarTask.from project.javadoc
-            }
-
-            project.artifacts.add(extension.configuration, javaDocJarTask)
+        if(archiveTask) {
+            project.artifacts.add(extension.configuration, archiveTask)
         }
     }
 
@@ -249,29 +209,5 @@ class NexusPlugin implements Plugin<Project> {
         String askForPassword() {
             console ? new String(console.readPassword('\nPlease specify password: ')) : null
         }
-    }
-
-    /**
-     * Checks to see if Java plugin got applied to project.
-     *
-     * @param project Project
-     * @return Flag
-     */
-    private boolean hasJavaPlugin(Project project) {
-        hasPlugin(project, JavaPlugin)
-    }
-
-    /**
-     * Checks to see if Groovy plugin got applied to project.
-     *
-     * @param project Project
-     * @return Flag
-     */
-    private boolean hasGroovyPlugin(Project project) {
-        hasPlugin(project, GroovyPlugin)
-    }
-
-    private boolean hasPlugin(Project project, Class<? extends Plugin> pluginClass) {
-        project.plugins.hasPlugin(pluginClass)
     }
 }

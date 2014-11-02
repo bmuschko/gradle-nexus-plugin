@@ -23,13 +23,16 @@ import org.gradle.tooling.model.GradleProject
  * @author Benjamin Muschko
  */
 class SingleProjectArtifactIntegrationTest extends SingleProjectBuildIntegrationTest {
-    def "Creates all configured JARs for default configuration"() {
-        when:
+    def setup() {
         buildFile << """
-nexus {
-    attachTests = true
+extraArchive {
+    tests = true
 }
 """
+    }
+
+    def "Creates all configured JARs for default configuration"() {
+        when:
         GradleProject project = runTasks(integTestDir, 'assemble')
 
         then:
@@ -47,7 +50,6 @@ configurations {
 }
 
 nexus {
-    attachTests = true
     configuration = configurations.myConfig
 }
 """
@@ -68,7 +70,6 @@ configurations {
 }
 
 nexus {
-    attachTests = true
     configuration = 'myConfig'
 }
 """

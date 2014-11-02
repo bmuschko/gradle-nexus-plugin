@@ -24,7 +24,7 @@ example on how to retrieve it from Bintray:
         }
 
         dependencies {
-            classpath 'com.bmuschko:gradle-nexus-plugin:2.0.1'
+            classpath 'com.bmuschko:gradle-nexus-plugin:2.1'
         }
     }
 
@@ -41,13 +41,16 @@ added to the project or removed, you will need to set a specific extension prope
 Additionally, it applies the [Maven plugin](http://gradle.org/docs/current/userguide/maven_plugin.html) plugin as well
 as `signing` in order to leverage maven's `install` and `uploadArchives` tasks.
 
-## Convention properties
+## Extension properties
 
-The Nexus plugin defines the following convention properties in the `nexus` closure:
+The plugin defines the following extension properties in the `extraArchive` closure:
 
-* `attachJavadoc`: Adds Javadoc JAR task to project (defaults to true).
-* `attachSources`: Adds sources JAR task to project (defaults to true).
-* `attachTests`: Adds test sources JAR task to project (defaults to false).
+* `javadoc`: Adds Javadoc JAR task to project (defaults to true).
+* `sources`: Adds sources JAR task to project (defaults to true).
+* `tests`: Adds test sources JAR task to project (defaults to false).
+
+The plugin defines the following extension properties in the `nexus` closure:
+
 * `sign`: Specifies whether to sign the artifacts using the [signing plugin](http://gradle.org/docs/current/userguide/signing_plugin.html) (defaults to true).
 * `configuration`: The custom configuration used to publish artifacts (defaults to `archives`).
 * `repositoryUrl`: The stable release repository URL (defaults to `https://oss.sonatype.org/service/local/staging/deploy/maven2/`).
@@ -107,11 +110,14 @@ If you don't specify one of these properties, the plugin will prompt your for th
             }
         }
     }
+    
+    extraArchive {
+        sources = false
+        tests = true
+        javadoc = false
+    }
 
     nexus {
-        attachSources = false
-        attachTests = true
-        attachJavadoc = false
         sign = true
         repositoryUrl = 'http://localhost:8081/nexus/content/repositories/internal/'
         snapshotRepositoryUrl = 'http://localhost:8081/nexus/content/repositories/internal-snapshots/'

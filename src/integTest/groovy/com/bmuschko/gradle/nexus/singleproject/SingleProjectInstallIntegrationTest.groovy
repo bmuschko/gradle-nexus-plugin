@@ -29,6 +29,14 @@ import static org.spockframework.util.Assert.fail
 class SingleProjectInstallIntegrationTest extends SingleProjectBuildIntegrationTest {
     final static M2_HOME_DIR = new File(System.properties['user.home'], '.m2/repository')
 
+    def setup() {
+        buildFile << """
+extraArchive {
+    tests = true
+}
+"""
+    }
+
     @IgnoreIf({ !hasSigningKey() })
     def "Installs all configured JARs, metadata and signature artifacts for release version with default configuration"() {
         setup:
@@ -40,10 +48,6 @@ class SingleProjectInstallIntegrationTest extends SingleProjectBuildIntegrationT
         buildFile << """
 version = '$projectCoordinates.version'
 group = '$projectCoordinates.group'
-
-nexus {
-    attachTests = true
-}
 """
         runTasks(integTestDir, MavenPlugin.INSTALL_TASK_NAME)
 
@@ -72,10 +76,6 @@ nexus {
         buildFile << """
 version = '$projectCoordinates.version'
 group = '$projectCoordinates.group'
-
-nexus {
-    attachTests = true
-}
 """
         buildFile << getDefaultPomMetaData()
         runTasks(integTestDir, MavenPlugin.INSTALL_TASK_NAME)
@@ -116,7 +116,6 @@ artifacts {
 }
 
 nexus {
-    attachTests = true
     configuration = configurations.myConfig
 }
 """
@@ -157,7 +156,6 @@ artifacts {
 }
 
 nexus {
-    attachTests = true
     configuration = configurations.myConfig
 }
 """
@@ -190,10 +188,6 @@ nexus {
         buildFile << """
 version = '$projectCoordinates.version'
 group = '$projectCoordinates.group'
-
-nexus {
-    attachTests = true
-}
 """
         runTasks(integTestDir, MavenPlugin.INSTALL_TASK_NAME)
 
@@ -232,7 +226,6 @@ artifacts {
 }
 
 nexus {
-    attachTests = true
     configuration = configurations.myConfig
 }
 """

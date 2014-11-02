@@ -15,6 +15,7 @@
  */
 package com.bmuschko.gradle.nexus.singleproject
 
+import com.bmuschko.gradle.nexus.ExtraArchivePlugin
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.Task
 
@@ -29,13 +30,13 @@ class SingleProjectArchiveTaskIntegrationTest extends SingleProjectBuildIntegrat
         GradleProject project = runTasks(integTestDir, 'tasks')
 
         then:
-        Task sourcesJarTask = project.tasks.find { task -> task.name == 'sourcesJar' }
+        Task sourcesJarTask = project.tasks.find { task -> task.name == ExtraArchivePlugin.SOURCES_JAR_TASK_NAME }
         sourcesJarTask
         sourcesJarTask.description == 'Assembles a jar archive containing the main sources of this project.'
-        Task javadocJarTask = project.tasks.find { task -> task.name == 'javadocJar' }
+        Task javadocJarTask = project.tasks.find { task -> task.name == ExtraArchivePlugin.JAVADOC_JAR_TASK_NAME }
         javadocJarTask
         javadocJarTask.description == 'Assembles a jar archive containing the generated Javadoc API documentation of this project.'
-        !project.tasks.find { task -> task.name == 'testsJar' }
+        !project.tasks.find { task -> task.name == ExtraArchivePlugin.TESTS_JAR_TASK_NAME }
     }
 
     def "Adds sources and Javadoc JAR tasks by default for Groovy project"() {
@@ -43,32 +44,32 @@ class SingleProjectArchiveTaskIntegrationTest extends SingleProjectBuildIntegrat
         GradleProject project = runTasks(integTestDir, 'tasks')
 
         then:
-        Task sourcesJarTask = project.tasks.find { task -> task.name == 'sourcesJar' }
+        Task sourcesJarTask = project.tasks.find { task -> task.name == ExtraArchivePlugin.SOURCES_JAR_TASK_NAME }
         sourcesJarTask
         sourcesJarTask.description == 'Assembles a jar archive containing the main sources of this project.'
-        Task javadocJarTask = project.tasks.find { task -> task.name == 'javadocJar' }
+        Task javadocJarTask = project.tasks.find { task -> task.name == ExtraArchivePlugin.JAVADOC_JAR_TASK_NAME }
         javadocJarTask
         javadocJarTask.description == 'Assembles a jar archive containing the generated Javadoc API documentation of this project.'
-        !project.tasks.find { task -> task.name == 'testsJar' }
+        !project.tasks.find { task -> task.name == ExtraArchivePlugin.TESTS_JAR_TASK_NAME }
     }
 
     def "Adds tests JAR task if configured"() {
         when:
         buildFile << """
-nexus {
-    attachTests = true
+extraArchive {
+    tests = true
 }
 """
         GradleProject project = runTasks(integTestDir, 'tasks')
 
         then:
-        Task sourcesJarTask = project.tasks.find { task -> task.name == 'sourcesJar' }
+        Task sourcesJarTask = project.tasks.find { task -> task.name == ExtraArchivePlugin.SOURCES_JAR_TASK_NAME }
         sourcesJarTask
         sourcesJarTask.description == 'Assembles a jar archive containing the main sources of this project.'
-        Task javadocJarTask = project.tasks.find { task -> task.name == 'javadocJar' }
+        Task javadocJarTask = project.tasks.find { task -> task.name == ExtraArchivePlugin.JAVADOC_JAR_TASK_NAME }
         javadocJarTask
         javadocJarTask.description == 'Assembles a jar archive containing the generated Javadoc API documentation of this project.'
-        Task testsJarTask = project.tasks.find { task -> task.name == 'testsJar'}
+        Task testsJarTask = project.tasks.find { task -> task.name == ExtraArchivePlugin.TESTS_JAR_TASK_NAME}
         testsJarTask
         testsJarTask.description == 'Assembles a jar archive containing the test sources of this project.'
     }
@@ -76,16 +77,16 @@ nexus {
     def "Disables additional JAR creation"() {
         when:
         buildFile << """
-nexus {
-    attachSources = false
-    attachJavadoc = false
+extraArchive {
+    sources = false
+    javadoc = false
 }
 """
         GradleProject project = runTasks(integTestDir, 'tasks')
 
         then:
-        !project.tasks.find { task -> task.name == 'sourcesJar'}
-        !project.tasks.find { task -> task.name == 'javadocJar'}
-        !project.tasks.find { task -> task.name == 'testsJar'}
+        !project.tasks.find { task -> task.name == ExtraArchivePlugin.SOURCES_JAR_TASK_NAME}
+        !project.tasks.find { task -> task.name == ExtraArchivePlugin.JAVADOC_JAR_TASK_NAME}
+        !project.tasks.find { task -> task.name == ExtraArchivePlugin.TESTS_JAR_TASK_NAME}
     }
 }

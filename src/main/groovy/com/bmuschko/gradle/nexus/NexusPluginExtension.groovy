@@ -28,16 +28,8 @@ import org.gradle.api.plugins.MavenPlugin
 class NexusPluginExtension {
     String configuration = Dependency.ARCHIVES_CONFIGURATION
     Boolean sign = true
-    Boolean attachSources = true
-    Boolean attachTests = false
-    Boolean attachJavadoc = true
     String repositoryUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
     String snapshotRepositoryUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
-
-    def nexus(Closure closure) {
-        closure.delegate = this
-        closure()
-    }
 
     String getUploadTaskName() {
         "upload${configuration.capitalize()}"
