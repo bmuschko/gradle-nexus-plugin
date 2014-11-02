@@ -1,3 +1,7 @@
+### Version 2.1.1 (November 2, 2014)
+
+* Allow for applying Java plugin after Nexus plugin - [Issue 8](https://github.com/bmuschko/gradle-nexus-plugin/issues/8).
+
 ### Version 2.1 (November 2, 2014)
 
 * The functionality of adding archive task is now part of the `ExtraArchivePlugin`.
