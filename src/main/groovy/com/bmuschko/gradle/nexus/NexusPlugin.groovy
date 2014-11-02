@@ -208,15 +208,15 @@ class NexusPlugin implements Plugin<Project> {
             project.tasks.getByName(extension.uploadTaskName).repositories.mavenDeployer() {
                 project.gradle.taskGraph.whenReady { TaskExecutionGraph taskGraph ->
                     if(taskGraph.hasTask(extension.getUploadTaskPath(project))) {
-                        Console console = System.console()
+                        ConsoleHandler consoleHandler = new ConsoleHandler()
 
                         String nexusUsername = project.hasProperty(NEXUS_USERNAME) ?
                                                project.property(NEXUS_USERNAME) :
-                                               console.readLine('\nPlease specify username: ')
+                                               consoleHandler.askForUsername()
 
                         String nexusPassword = project.hasProperty(NEXUS_PASSWORD) ?
                                                project.property(NEXUS_PASSWORD) :
-                                               new String(console.readPassword('\nPlease specify password: '))
+                                               consoleHandler.askForPassword()
 
                         if(extension.repositoryUrl) {
                             repository(url: extension.repositoryUrl) {
@@ -232,6 +232,22 @@ class NexusPlugin implements Plugin<Project> {
                     }
                 }
             }
+        }
+    }
+
+    private class ConsoleHandler {
+        Console console
+
+        ConsoleHandler() {
+            console = System.console()
+        }
+
+        String askForUsername() {
+            console ? console.readLine('\nPlease specify username: ') : null
+        }
+
+        String askForPassword() {
+            console ? new String(console.readPassword('\nPlease specify password: ')) : null
         }
     }
 
