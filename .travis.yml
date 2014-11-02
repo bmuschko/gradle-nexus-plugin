@@ -1,0 +1,9 @@
+language: java
+install: true
+jdk:
+- oraclejdk7
+env:
+  matrix:
+  - TERM=dumb
+script:
+- ./gradlew clean build
