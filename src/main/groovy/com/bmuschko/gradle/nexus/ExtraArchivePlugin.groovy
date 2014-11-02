@@ -21,9 +21,11 @@ class ExtraArchivePlugin implements Plugin<Project> {
 
     private void configureTasks(Project project, ExtraArchivePluginExtension extension) {
         project.afterEvaluate {
-            configureSourcesJarTask(project, extension)
-            configureTestsJarTask(project, extension)
-            configureJavadocJarTask(project, extension)
+            project.plugins.withType(JavaPlugin) {
+                configureSourcesJarTask(project, extension)
+                configureTestsJarTask(project, extension)
+                configureJavadocJarTask(project, extension)
+            }
         }
     }
 
@@ -60,20 +62,10 @@ class ExtraArchivePlugin implements Plugin<Project> {
             if(hasGroovyPlugin(project)) {
                 javaDocJarTask.from project.groovydoc
             }
-            else if(hasJavaPlugin(project)) {
+            else {
                 javaDocJarTask.from project.javadoc
             }
         }
-    }
-
-    /**
-     * Checks to see if Java plugin got applied to project.
-     *
-     * @param project Project
-     * @return Flag
-     */
-    private boolean hasJavaPlugin(Project project) {
-        hasPlugin(project, JavaPlugin)
     }
 
     /**

@@ -15,17 +15,25 @@
  */
 package com.bmuschko.gradle.nexus.singleproject
 
+import com.bmuschko.gradle.nexus.AbstractIntegrationTest
 import com.bmuschko.gradle.nexus.ExtraArchivePlugin
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.Task
+import spock.lang.Issue
 
 /**
  * Nexus plugin archive task integration tests.
  *
  * @author Benjamin Muschko
  */
-class SingleProjectArchiveTaskIntegrationTest extends SingleProjectBuildIntegrationTest {
+class SingleProjectArchiveTaskIntegrationTest extends AbstractIntegrationTest {
     def "Adds sources and Javadoc JAR tasks by default for Java project"() {
+        given:
+        buildFile << """
+apply plugin: 'java'
+apply plugin: com.bmuschko.gradle.nexus.NexusPlugin
+"""
+
         when:
         GradleProject project = runTasks(integTestDir, 'tasks')
 
@@ -40,6 +48,12 @@ class SingleProjectArchiveTaskIntegrationTest extends SingleProjectBuildIntegrat
     }
 
     def "Adds sources and Javadoc JAR tasks by default for Groovy project"() {
+        given:
+        buildFile << """
+apply plugin: 'java'
+apply plugin: com.bmuschko.gradle.nexus.NexusPlugin
+"""
+
         when:
         GradleProject project = runTasks(integTestDir, 'tasks')
 
@@ -56,6 +70,9 @@ class SingleProjectArchiveTaskIntegrationTest extends SingleProjectBuildIntegrat
     def "Adds tests JAR task if configured"() {
         when:
         buildFile << """
+apply plugin: 'java'
+apply plugin: com.bmuschko.gradle.nexus.NexusPlugin
+
 extraArchive {
     tests = true
 }
@@ -77,6 +94,9 @@ extraArchive {
     def "Disables additional JAR creation"() {
         when:
         buildFile << """
+apply plugin: 'java'
+apply plugin: com.bmuschko.gradle.nexus.NexusPlugin
+
 extraArchive {
     sources = false
     javadoc = false
@@ -88,5 +108,24 @@ extraArchive {
         !project.tasks.find { task -> task.name == ExtraArchivePlugin.SOURCES_JAR_TASK_NAME}
         !project.tasks.find { task -> task.name == ExtraArchivePlugin.JAVADOC_JAR_TASK_NAME}
         !project.tasks.find { task -> task.name == ExtraArchivePlugin.TESTS_JAR_TASK_NAME}
+    }
+
+    @Issue("https://github.com/bmuschko/gradle-nexus-plugin/issues/8")
+    def "Java plugin can be applied after Nexus plugin"() {
+        given:
+        buildFile << """
+apply plugin: com.bmuschko.gradle.nexus.NexusPlugin
+apply plugin: 'java'
+"""
+
+        when:
+        GradleProject project = runTasks(integTestDir, 'tasks')
+
+        then:
+        Task sourcesJarTask = project.tasks.find { task -> task.name == ExtraArchivePlugin.SOURCES_JAR_TASK_NAME }
+        sourcesJarTask
+        Task javadocJarTask = project.tasks.find { task -> task.name == ExtraArchivePlugin.JAVADOC_JAR_TASK_NAME }
+        javadocJarTask
+        !project.tasks.find { task -> task.name == ExtraArchivePlugin.TESTS_JAR_TASK_NAME }
     }
 }
