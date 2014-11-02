@@ -17,6 +17,7 @@ package com.bmuschko.gradle.nexus.singleproject
 
 import org.gradle.tooling.model.GradleProject
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 import static com.bmuschko.gradle.nexus.AbstractIntegrationTest.hasSigningKey
 
@@ -80,6 +81,7 @@ nexus {
         assertCorrectPomXml(new File(repoDir, "${project.name}-1.0.pom"))
     }
 
+    @Issue("https://github.com/bmuschko/gradle-nexus-plugin/issues/32")
     def "Uploads all configured JARs and customized metadata for provided configuration"() {
         when:
         buildFile << """
