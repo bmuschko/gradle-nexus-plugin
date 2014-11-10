@@ -142,22 +142,19 @@ modifyPom {
                                  "${project.name}-1.0-sources.jar", "${project.name}-1.0-tests.jar"]
         assertExistingFiles(repoDir, expectedFilenames)
         def pomXml = new XmlSlurper().parse(new File(repoDir, "${project.name}-1.0.pom"))
-        assert pomXml.dependencies.dependency.size() == 3
-        def mysqlDependency = pomXml.dependencies.dependency[0]
-        assert mysqlDependency.groupId.text() == 'mysql'
-        assert mysqlDependency.artifactId.text() == 'mysql-connector-java'
-        assert mysqlDependency.version.text() == '5.1.13'
-        assert mysqlDependency.scope.text() == 'runtime'
-        def commonsLangDependency = pomXml.dependencies.dependency[1]
-        assert commonsLangDependency.groupId.text() == 'commons-lang'
-        assert commonsLangDependency.artifactId.text() == 'commons-lang'
-        assert commonsLangDependency.version.text() == '2.6'
-        assert commonsLangDependency.scope.text() == 'compile'
-        def servletDependency = pomXml.dependencies.dependency[2]
-        assert servletDependency.groupId.text() == 'javax.servlet'
-        assert servletDependency.artifactId.text() == 'javax.servlet-api'
-        assert servletDependency.version.text() == '3.1.0'
-        assert servletDependency.scope.text() == 'provided'
+        pomXml.dependencies.dependency.size() == 3
+        pomXml.dependencies.dependency.find {
+            it.groupId.text() == 'mysql' && it.artifactId.text() == 'mysql-connector-java' &&
+            it.version.text() == '5.1.13' && it.scope.text() == 'runtime'
+        }
+        pomXml.dependencies.dependency.find {
+            it.groupId.text() == 'commons-lang' && it.artifactId.text() == 'commons-lang' &&
+            it.version.text() == '2.6' && it.scope.text() == 'compile'
+        }
+        pomXml.dependencies.dependency.find {
+            it.groupId.text() == 'javax.servlet' && it.artifactId.text() == 'javax.servlet-api' &&
+            it.version.text() == '3.1.0' && it.scope.text() == 'provided'
+        }
     }
 
     @IgnoreIf({ !hasSigningKey() })
