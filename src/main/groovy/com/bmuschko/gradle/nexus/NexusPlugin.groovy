@@ -79,7 +79,8 @@ class NexusPlugin implements Plugin<Project> {
             if(extension.sign) {
                 project.signing {
                     required {
-                        project.gradle.taskGraph.hasTask(extension.getUploadTaskPath(project)) && !project.version.endsWith('SNAPSHOT')
+                        // Gradle allows project.version to be of type Object and always uses the toString() representation.
+                        project.gradle.taskGraph.hasTask(extension.getUploadTaskPath(project)) && !project.version.toString().endsWith('SNAPSHOT')
                     }
 
                     sign project.configurations[extension.configuration]
