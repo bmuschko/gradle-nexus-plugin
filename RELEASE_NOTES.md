@@ -1,3 +1,7 @@
+### Version 2.2 (December 20, 2014)
+
+* Use toString() representation of project.version - [Pull request 39](https://github.com/bmuschko/gradle-nexus-plugin/pull/39).
+
 ### Version 2.1.1 (November 2, 2014)
 
 * Allow for applying Java plugin after Nexus plugin - [Issue 8](https://github.com/bmuschko/gradle-nexus-plugin/issues/8).
