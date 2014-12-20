@@ -18,6 +18,7 @@ package com.bmuschko.gradle.nexus.singleproject
 import org.gradle.tooling.model.GradleProject
 import spock.lang.IgnoreIf
 import spock.lang.Issue
+import spock.lang.Unroll
 
 import static com.bmuschko.gradle.nexus.AbstractIntegrationTest.hasSigningKey
 
@@ -27,6 +28,23 @@ import static com.bmuschko.gradle.nexus.AbstractIntegrationTest.hasSigningKey
  * @author Benjamin Muschko
  */
 class SingleProjectUploadIntegrationTest extends SingleProjectBuildIntegrationTest {
+
+    /**
+     * Different types that evaluate to version "1.0" when calling toString() on them.
+     */
+    static final List<Object> VERIFIED_1_0_RELEASE_VERSION_TYPES = [
+            "'1.0'",
+            "new Object() { String toString() { '1.0' } }"
+    ]
+
+    /**
+     * Different types that evaluate to version "1.0-SNAPSHOT" when calling toString() on them.
+     */
+    static final List<Object> VERIFIED_1_0_SNAPSHOT_VERSION_TYPES = [
+            "'1.0-SNAPSHOT'",
+            "new Object() { String toString() { '1.0-SNAPSHOT' } }"
+    ]
+
     def setup() {
         buildFile << """
 extraArchive {
@@ -35,11 +53,12 @@ extraArchive {
 """
     }
 
+    @Unroll
     @IgnoreIf({ !hasSigningKey() })
-    def "Uploads all configured JARs, metadata and signature artifacts for release version with default configuration"() {
+    def "Uploads all configured JARs, metadata and signature artifacts for release version with default configuration for version '#projectVersion'"() {
         when:
         buildFile << """
-version = '1.0'
+version = $projectVersion
 group = 'org.gradle.mygroup'
 
 nexus {
@@ -55,6 +74,9 @@ nexus {
                                  "${project.name}-1.0-sources.jar", "${project.name}-1.0-sources.jar.asc", "${project.name}-1.0-tests.jar",
                                  "${project.name}-1.0-tests.jar.asc"]
         assertExistingFiles(repoDir, expectedFilenames)
+
+        where:
+        projectVersion << VERIFIED_1_0_RELEASE_VERSION_TYPES
     }
 
     @IgnoreIf({ !hasSigningKey() })
@@ -272,11 +294,12 @@ nexus {
         assertNoSignatureFiles(repoDir)
     }
 
+    @Unroll
     @IgnoreIf({ !hasSigningKey() })
-    def "Uploads all configured JARs, metadata and signature artifacts for snapshot version with default configuration"() {
+    def "Uploads all configured JARs, metadata and signature artifacts for snapshot version with default configuration for version '#projectVersion'"() {
         when:
         buildFile << """
-version = '1.0-SNAPSHOT'
+version = $projectVersion
 group = 'org.gradle.mygroup'
 
 nexus {
@@ -293,6 +316,9 @@ nexus {
                                  "${project.name}-1\\.0-\\d+\\.\\d+-1\\-sources.jar", "${project.name}-1\\.0-\\d+\\.\\d+-1\\-sources.jar.asc",
                                  "${project.name}-1\\.0-\\d+\\.\\d+-1\\-tests.jar", "${project.name}-1\\.0-\\d+\\.\\d+-1\\-tests.jar.asc"]
         assertExistingFiles(repoDir, expectedFilenames)
+
+        where:
+        projectVersion << VERIFIED_1_0_SNAPSHOT_VERSION_TYPES
     }
 
     @IgnoreIf({ !hasSigningKey() })
