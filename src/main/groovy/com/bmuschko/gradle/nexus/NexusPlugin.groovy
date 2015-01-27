@@ -159,8 +159,11 @@ class NexusPlugin implements Plugin<Project> {
         }
 
         project.afterEvaluate {
-            project.ext.poms = [project.tasks.getByName(MavenPlugin.INSTALL_TASK_NAME).repositories.mavenInstaller(),
-                                project.tasks.getByName(extension.uploadTaskName).repositories.mavenDeployer()]*.pom
+			project.ext.poms = []
+			if(project.tasks.findByPath(MavenPlugin.INSTALL_TASK_NAME)) {
+				project.ext.poms << project.tasks.getByName(MavenPlugin.INSTALL_TASK_NAME).repositories.mavenInstaller().pom
+			}
+            project.ext.poms << project.tasks.getByName(extension.uploadTaskName).repositories.mavenDeployer().pom
         }
     }
 
