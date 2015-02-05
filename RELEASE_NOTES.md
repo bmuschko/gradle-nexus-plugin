@@ -1,3 +1,7 @@
+### Version 2.3 (February 4, 2015)
+
+* Do not fail upload for non-Java project - [Pull request 45](https://github.com/bmuschko/gradle-nexus-plugin/pull/45).
+
 ### Version 2.2 (December 20, 2014)
 
 * Use toString() representation of project.version - [Pull request 39](https://github.com/bmuschko/gradle-nexus-plugin/pull/39).
