@@ -13,22 +13,25 @@ to Sonatype OSS. Currently, Java and Groovy project artifact generation is suppo
 
 To use the Sonatype Nexus plugin, include in your build script:
 
-    apply plugin: 'com.bmuschko.nexus'
+```groovy
+apply plugin: 'com.bmuschko.nexus'
+```
 
 The plugin JAR needs to be defined in the classpath of your build script. It is directly available on
 [Bintray](https://bintray.com/bmuschko/gradle-plugins/com.bmuschko%3Agradle-nexus-plugin).
 Alternatively, you can download it from GitHub and deploy it to your local repository. The following code snippet shows an
 example on how to retrieve it from Bintray:
 
-    buildscript {
-        repositories {
-            jcenter()
-        }
-
-        dependencies {
-            classpath 'com.bmuschko:gradle-nexus-plugin:2.3'
-        }
-    }
+```groovy
+ buildscript {
+     repositories {
+         jcenter()
+     }
+     dependencies {
+         classpath 'com.bmuschko:gradle-nexus-plugin:2.3'
+     }
+ }
+```
 
 ## Tasks
 
@@ -65,65 +68,71 @@ The plugin defines the following extension properties in the `nexus` closure:
 In addition to the convention properties the automatically generated POM file can be modified. To provide the data for
 the POM generation specify the information within the configuration element `modifyPom.project`.
 
-    modifyPom {
-        project {
-            ...
-        }
-    }
+```groovy
+ modifyPom {
+     project {
+         ...
+     }
+ }
+```
 
 ### Credentials
 
 In your `~/.gradle/gradle.properties` you will need to set the mandatory Nexus credentials required for uploading your artifacts.
 
-    nexusUsername = yourUsername
-    nexusPassword = yourPassword
+```groovy
+ nexusUsername = yourUsername
+ nexusPassword = yourPassword
+```
 
 If you don't specify one of these properties, the plugin will prompt your for their values in the console.
 
 ### Example
 
-    modifyPom {
-        project {
-            name 'Gradle Sonatype Nexus plugin'
-            description 'Gradle plugin that provides tasks for configuring and uploading artifacts to Sonatype Nexus.'
-            url 'https://github.com/bmuschko/gradle-nexus-plugin'
-            inceptionYear '2012'
+```groovy
+ modifyPom {
+     project {
+         name 'Gradle Sonatype Nexus plugin'
+         description 'Gradle plugin that provides tasks for configuring and uploading artifacts to Sonatype Nexus.'
+         url 'https://github.com/bmuschko/gradle-nexus-plugin'
+         inceptionYear '2012'
 
-            scm {
-                url 'https://github.com/bmuschko/gradle-nexus-plugin'
-                connection 'scm:https://bmuschko@github.com/bmuschko/gradle-nexus-plugin.git'
-                developerConnection 'scm:git://github.com/bmuschko/gradle-nexus-plugin.git'
-            }
+         scm {
+             url 'https://github.com/bmuschko/gradle-nexus-plugin'
+             connection 'scm:https://bmuschko@github.com/bmuschko/gradle-nexus-plugin.git'
+             developerConnection 'scm:git://github.com/bmuschko/gradle-nexus-plugin.git'
+         }
 
-            licenses {
-                license {
-                    name 'The Apache Software License, Version 2.0'
-                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    distribution 'repo'
-                }
-            }
+         licenses {
+             license {
+                 name 'The Apache Software License, Version 2.0'
+                 url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                 distribution 'repo'
+             }
+         }
 
-            developers {
-                developer {
-                    id 'bmuschko'
-                    name 'Benjamin Muschko'
-                    email 'benjamin.muschko@gmail.com'
-                }
-            }
-        }
-    }
-    
-    extraArchive {
-        sources = false
-        tests = true
-        javadoc = false
-    }
+         developers {
+             developer {
+                 id 'bmuschko'
+                 name 'Benjamin Muschko'
+                 email 'benjamin.muschko@gmail.com'
+             }
+         }
+     }
+ }
+ 
+ extraArchive {
+     sources = false
+     tests = true
+     javadoc = false
+ }
 
-    nexus {
-        sign = true
-        repositoryUrl = 'http://localhost:8081/nexus/content/repositories/internal/'
-        snapshotRepositoryUrl = 'http://localhost:8081/nexus/content/repositories/internal-snapshots/'
-    }
+ nexus {
+     sign = true
+     repositoryUrl = 'http://localhost:8081/nexus/content/repositories/internal/'
+     snapshotRepositoryUrl = 'http://localhost:8081/nexus/content/repositories/internal-snapshots/'
+ }
+```
 
 ## FAQ
 
