@@ -15,6 +15,7 @@
  */
 package com.bmuschko.gradle.nexus
 
+import groovy.util.slurpersupport.NodeChildren
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
@@ -133,6 +134,12 @@ modifyPom {
         assert developer.id.text() == 'bmuschko'
         assert developer.name.text() == 'Benjamin Muschko'
         assert developer.email.text() == 'benjamin.muschko@gmail.com'
+    }
+
+    protected void assertDependency(NodeChildren dependenciesNode, String groupId, String artifactId, String version, String scope) {
+        assert dependenciesNode.dependency.find {
+            it.groupId.text() == groupId && it.artifactId.text() == artifactId && it.version.text() == version && it.scope.text() == scope
+        }
     }
 
     protected GradleProject runTasks(File projectDir, String... tasks) {

@@ -53,6 +53,36 @@ extraArchive {
 """
     }
 
+    def "Uploads POM with the expected metadata"() {
+        when:
+        buildFile << """
+version = '1.0'
+group = 'org.gradle.mygroup'
+
+dependencies {
+    compile 'commons-lang:commons-lang:2.5'
+    compile 'com.google.guava:guava:18.0'
+    testCompile 'junit:junit:4.11'
+}
+
+nexus {
+    sign = false
+    repositoryUrl = 'file://$integTestDir.canonicalPath/repo'
+}
+"""
+        GradleProject project = runTasks(integTestDir, 'uploadArchives')
+
+        then:
+        File repoDir = new File(integTestDir, 'repo/org/gradle/mygroup/integTest/1.0')
+        File pom = new File(repoDir, "${project.name}-1.0.pom")
+        pom.exists()
+        def xml = new XmlSlurper().parseText(pom.text)
+        xml.dependencies.dependency.size() == 3
+        assertDependency(xml.dependencies, 'commons-lang', 'commons-lang', '2.5', 'compile')
+        assertDependency(xml.dependencies, 'com.google.guava', 'guava', '18.0', 'compile')
+        assertDependency(xml.dependencies, 'junit', 'junit', '4.11', 'test')
+    }
+
     @Unroll
     @IgnoreIf({ !hasSigningKey() })
     def "Uploads all configured JARs, metadata and signature artifacts for release version with default configuration for version '#projectVersion'"() {
