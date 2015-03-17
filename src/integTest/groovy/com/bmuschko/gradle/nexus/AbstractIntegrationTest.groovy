@@ -25,7 +25,7 @@ import spock.lang.Specification
 import static org.spockframework.util.Assert.fail
 
 /**
- * Abstract integregration test using Gradle's tooling API.
+ * Abstract integration test using Gradle's tooling API.
  *
  * @author Benjamin Muschko
  */
