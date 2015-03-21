@@ -100,6 +100,11 @@ modifyPom {
 """
     }
 
+    protected String getMatchingFilename(File dir, String filename) {
+        def dirFileNames = dir.listFiles()*.name
+        dirFileNames.find { it ==~ filename }
+    }
+
     protected void assertExistingFiles(File dir, List<String> requiredFilenames) {
         assertExistingDirectory(dir)
         def dirFileNames = dir.listFiles()*.name
