@@ -150,8 +150,6 @@ class NexusPlugin implements Plugin<Project> {
     }
 
     private void configurePom(Project project, NexusPluginExtension extension) {
-        createPomsProjectProperty(project, extension)
-
         project.ext.modifyPom = { Closure modification ->
             project.afterEvaluate {
                 project.poms.each {
@@ -159,17 +157,21 @@ class NexusPlugin implements Plugin<Project> {
                 }
             }
         }
+
+        createPomsProjectProperty(project, extension)
     }
 
     private void createPomsProjectProperty(Project project, NexusPluginExtension extension) {
-        project.ext.poms = []
-        Task installTask = project.tasks.findByPath(MavenPlugin.INSTALL_TASK_NAME)
+        project.afterEvaluate {
+            project.ext.poms = []
+            Task installTask = project.tasks.findByPath(MavenPlugin.INSTALL_TASK_NAME)
 
-        if(installTask) {
-            project.ext.poms << installTask.repositories.mavenInstaller().pom
+            if (installTask) {
+                project.ext.poms << installTask.repositories.mavenInstaller().pom
+            }
+
+            project.ext.poms << project.tasks.getByName(extension.uploadTaskName).repositories.mavenDeployer().pom
         }
-
-        project.ext.poms << project.tasks.getByName(extension.uploadTaskName).repositories.mavenDeployer().pom
     }
 
     private void configureUpload(Project project, NexusPluginExtension extension) {
