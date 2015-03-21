@@ -28,7 +28,7 @@ example on how to retrieve it from Bintray:
          jcenter()
      }
      dependencies {
-         classpath 'com.bmuschko:gradle-nexus-plugin:2.3'
+         classpath 'com.bmuschko:gradle-nexus-plugin:2.3.1'
      }
  }
 ```

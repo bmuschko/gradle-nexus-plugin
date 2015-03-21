@@ -1,3 +1,7 @@
+### Version 2.3.1 (March 21, 2015)
+
+* Invalid generation of POM dependencies - [Issue 49](https://github.com/bmuschko/gradle-nexus-plugin/issues/49).
+
 ### Version 2.3 (February 4, 2015)
 
 * Do not fail upload for non-Java project - [Pull request 45](https://github.com/bmuschko/gradle-nexus-plugin/pull/45).
