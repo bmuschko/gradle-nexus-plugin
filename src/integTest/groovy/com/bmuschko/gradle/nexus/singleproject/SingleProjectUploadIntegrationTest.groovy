@@ -53,10 +53,11 @@ extraArchive {
 """
     }
 
-    def "Uploads POM with the expected metadata"() {
+    @Unroll
+    def "Uploads POM for version #version with the expected metadata"() {
         when:
         buildFile << """
-version = '1.0'
+version = '$version'
 group = 'org.gradle.mygroup'
 
 dependencies {
@@ -68,19 +69,26 @@ dependencies {
 nexus {
     sign = false
     repositoryUrl = 'file://$integTestDir.canonicalPath/repo'
+    snapshotRepositoryUrl = 'file://$integTestDir.canonicalPath/repo'
 }
 """
         GradleProject project = runTasks(integTestDir, 'uploadArchives')
 
         then:
-        File repoDir = new File(integTestDir, 'repo/org/gradle/mygroup/integTest/1.0')
-        File pom = new File(repoDir, "${project.name}-1.0.pom")
+        File repoDir = new File(integTestDir, "repo/org/gradle/mygroup/integTest/$version")
+        String pomFilename = getMatchingFilename(repoDir, "${project.name}-$pomFileName")
+        File pom = new File(repoDir, pomFilename)
         pom.exists()
         def xml = new XmlSlurper().parseText(pom.text)
         xml.dependencies.dependency.size() == 3
         assertDependency(xml.dependencies, 'commons-lang', 'commons-lang', '2.5', 'compile')
         assertDependency(xml.dependencies, 'com.google.guava', 'guava', '18.0', 'compile')
         assertDependency(xml.dependencies, 'junit', 'junit', '4.11', 'test')
+
+        where:
+        version        | pomFileName
+        '1.0'          | "1.0.pom"
+        '1.0-SNAPSHOT' | "1\\.0-\\d+\\.\\d+-1\\.pom"
     }
 
     @Unroll
