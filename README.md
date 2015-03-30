@@ -43,7 +43,7 @@ The Nexus plugin can add three tasks to your project:
 The output of all tasks is added to the `archives` configuration. To tell the plugin that any of these tasks should be
 added to the project or removed, you will need to set a specific extension property.
 
-Additionally, it applies the [Maven plugin](http://gradle.org/docs/current/userguide/maven_plugin.html) plugin as well
+Additionally, it applies the [Maven plugin](http://gradle.org/docs/current/userguide/maven_plugin.html) as well
 as `signing` in order to leverage maven's `install` and `uploadArchives` tasks.
 
 ## Extension properties
