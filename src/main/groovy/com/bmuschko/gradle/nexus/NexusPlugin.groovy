@@ -116,10 +116,13 @@ class NexusPlugin implements Plugin<Project> {
             throw new GradleException("GnuPG secret key file $keyringFile not found. Please set $SIGNING_KEYRING=/path/to/file.gpg in <USER_HOME>/.gradle/gradle.properties.")
         }
 
-        Console console = System.console()
         console.printf "\nThis release $project.version will be signed with your GnuPG key $signingKeyId in $keyringFile.\n"
+        Console console = System.console()
 
-        if(!project.hasProperty(SIGNING_PASSWORD)) {
+        if (console == null && !project.hasProperty(SIGNING_PASSWORD)) {
+            throw new GradleException("Passphrase for secret key needed, but no console was available. Try running" +
+                    " Gradle through the console with '--no-daemon'.");
+        } else if (!project.hasProperty(SIGNING_PASSWORD)) {
             String password = new String(console.readPassword('Please enter your passphrase to unlock the secret key: '))
             project.ext.set(SIGNING_PASSWORD, password)
         }
