@@ -59,7 +59,7 @@ The plugin defines the following extension properties in the `nexus` closure:
 * `sign`: Specifies whether to sign the artifacts using the [signing plugin](http://gradle.org/docs/current/userguide/signing_plugin.html) (defaults to true).
 * `configuration`: The custom configuration used to publish artifacts (defaults to `archives`).
 * `repositoryUrl`: The stable release repository URL (defaults to `https://oss.sonatype.org/service/local/staging/deploy/maven2/`).
-* `snapshotRepositoryUrl`: The stable release repository URL (defaults to `https://oss.sonatype.org/content/repositories/snapshots/`).
+* `snapshotRepositoryUrl`: The snapshot repository URL (defaults to `https://oss.sonatype.org/content/repositories/snapshots/`).
 
 ## Additional configuration
 
