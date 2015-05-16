@@ -121,6 +121,10 @@ class NexusPlugin implements Plugin<Project> {
 
         if (!project.hasProperty(SIGNING_PASSWORD)) {
             String password = console.askForPassword('Please enter your passphrase to unlock the secret key')
+            if (password == null) {
+                throw new GradleException("Passphrase for GnuPG secret key needed, but none was provided. Try running" +
+                        " Gradle through the console with '--no-daemon'.");
+            }
             project.ext.set(SIGNING_PASSWORD, password)
         }
     }
