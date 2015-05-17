@@ -142,3 +142,7 @@ By default the plugin is configured to upload your artifacts to the release and 
 There's no additional configuration required. If you want to tweak the automatically generated POM file please you the
 `modifyPom` closure. Make sure to stick to the process described in
 the [Central Repository Documentation](http://central.sonatype.org/pages/producers.html).
+
+**Is it possible to automatically publish artifacts to Maven Central without any manual steps in Nexus GUI (e.g. from CI server)?**
+
+It is beyond the scope of this plugin, but there is a dedicated 3rd-party plugin [gradle-nexus-staging-plugin](https://github.com/Codearte/gradle-nexus-staging-plugin) which allows to release/promote artifacts to Maven Central directly from Gradle. It also seamlessly integrates with gradle-nexus-plugin (e.g. allows to reuse provided credentials).
