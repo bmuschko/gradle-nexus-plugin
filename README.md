@@ -25,8 +25,6 @@ be configured to deploy to a self-hosted instance of Nexus or Sonatype OSS. The 
 to Sonatype OSS. Currently, Java and Groovy project artifact generation is supported. In addition to the JAR and POM file
  artifacts containing the JavaDocs and source files are created. Signing the artifacts is optional.
 
-[![Build Status](https://snap-ci.com/bmuschko/gradle-nexus-plugin/branch/master/build_image)](https://snap-ci.com/bmuschko/gradle-nexus-plugin/branch/master)
-
 ## Usage
 
 To use the Sonatype Nexus plugin, include in your build script:
