@@ -1,4 +1,4 @@
-# Gradle Sonatype Nexus plugin
+# Gradle Sonatype Nexus plugin [![Build Status](https://travis-ci.org/bmuschko/gradle-nexus-plugin.svg?branch=master)](https://travis-ci.org/bmuschko/gradle-nexus-plugin)
 
 ![Sonatype Logo](http://media.marketwire.com/attachments/200910/580330_sonatype.gif)
 
