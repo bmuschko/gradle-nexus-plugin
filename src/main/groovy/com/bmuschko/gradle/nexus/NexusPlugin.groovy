@@ -116,11 +116,15 @@ class NexusPlugin implements Plugin<Project> {
             throw new GradleException("GnuPG secret key file $keyringFile not found. Please set $SIGNING_KEYRING=/path/to/file.gpg in <USER_HOME>/.gradle/gradle.properties.")
         }
 
-        Console console = System.console()
+        ConsoleHandler console = new ConsoleHandler()
         console.printf "\nThis release $project.version will be signed with your GnuPG key $signingKeyId in $keyringFile.\n"
 
-        if(!project.hasProperty(SIGNING_PASSWORD)) {
-            String password = new String(console.readPassword('Please enter your passphrase to unlock the secret key: '))
+        if (!project.hasProperty(SIGNING_PASSWORD)) {
+            String password = console.askForPassword('Please enter your passphrase to unlock the secret key')
+            if (password == null) {
+                throw new GradleException("Passphrase for GnuPG secret key needed, but none was provided. Try running" +
+                        " Gradle through the console with '--no-daemon'.");
+            }
             project.ext.set(SIGNING_PASSWORD, password)
         }
     }
@@ -183,11 +187,11 @@ class NexusPlugin implements Plugin<Project> {
 
                         String nexusUsername = project.hasProperty(NEXUS_USERNAME) ?
                                                project.property(NEXUS_USERNAME) :
-                                               consoleHandler.askForUsername()
+                                               consoleHandler.askForUsername('Please enter your Nexus username')
 
                         String nexusPassword = project.hasProperty(NEXUS_PASSWORD) ?
                                                project.property(NEXUS_PASSWORD) :
-                                               consoleHandler.askForPassword()
+                                               consoleHandler.askForPassword('Please enter your Nexus password')
 
                         if(extension.repositoryUrl) {
                             repository(url: extension.repositoryUrl) {
@@ -213,12 +217,18 @@ class NexusPlugin implements Plugin<Project> {
             console = System.console()
         }
 
-        String askForUsername() {
-            console ? console.readLine('\nPlease specify username: ') : null
+        void printf(String string, Object... args) {
+            if (console) {
+                console.printf(string, args)
+            }
         }
 
-        String askForPassword() {
-            console ? new String(console.readPassword('\nPlease specify password: ')) : null
+        String askForUsername(String promptMessage) {
+            console ? console.readLine("\n${promptMessage}: ") : null
+        }
+
+        String askForPassword(String promptMessage) {
+            console ? new String(console.readPassword("\n${promptMessage}: ")) : null
         }
     }
 }
