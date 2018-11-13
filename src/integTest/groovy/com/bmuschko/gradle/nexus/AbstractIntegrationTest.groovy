@@ -49,7 +49,7 @@ abstract class AbstractIntegrationTest extends Specification {
         buildFile << """
 buildscript {
     dependencies {
-        classpath files('../classes/main')
+        classpath files('../classes/groovy/main')
     }
 }
 
