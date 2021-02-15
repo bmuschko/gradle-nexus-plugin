@@ -78,6 +78,10 @@ class NexusPlugin implements Plugin<Project> {
         project.afterEvaluate {
             if(extension.sign) {
                 project.signing {
+                    if (extension.signUseGpgCmd) {
+                        useGpgCmd()
+                    }
+
                     required {
                         // Gradle allows project.version to be of type Object and always uses the toString() representation.
                         project.gradle.taskGraph.hasTask(extension.getUploadTaskPath(project)) && !project.version.toString().endsWith('SNAPSHOT')
@@ -86,7 +90,7 @@ class NexusPlugin implements Plugin<Project> {
                     sign project.configurations[extension.configuration]
 
                     project.gradle.taskGraph.whenReady {
-                        if(project.signing.required) {
+                        if(project.signing.required && extension.signReadPrivateKey) {
                             getPrivateKeyForSigning(project)
                         }
 

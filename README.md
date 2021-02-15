@@ -73,6 +73,8 @@ The plugin defines the following extension properties in the `extraArchive` clos
 The plugin defines the following extension properties in the `nexus` closure:
 
 * `sign`: Specifies whether to sign the artifacts using the [signing plugin](http://gradle.org/docs/current/userguide/signing_plugin.html) (defaults to true).
+* `signUseGpgCmd`: Whether to use GPG agent instead of Java-based implementation for signing (defaults to false).
+* `signReadPrivateKey`: Whether to read the private key passphrase from the console (defaults to true).
 * `configuration`: The custom configuration used to publish artifacts (defaults to `archives`).
 * `repositoryUrl`: The stable release repository URL (defaults to `https://oss.sonatype.org/service/local/staging/deploy/maven2/`).
 * `snapshotRepositoryUrl`: The snapshot repository URL (defaults to `https://oss.sonatype.org/content/repositories/snapshots/`).

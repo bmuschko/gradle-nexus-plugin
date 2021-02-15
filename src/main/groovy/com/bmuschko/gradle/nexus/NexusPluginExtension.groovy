@@ -28,6 +28,8 @@ import org.gradle.api.plugins.MavenPlugin
 class NexusPluginExtension {
     String configuration = Dependency.ARCHIVES_CONFIGURATION
     Boolean sign = true
+    Boolean signUseGpgCmd = false
+    Boolean signReadPrivateKey = true
     String repositoryUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
     String snapshotRepositoryUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
 
