@@ -32,6 +32,7 @@ import static org.spockframework.util.Assert.fail
 abstract class AbstractIntegrationTest extends Specification {
     File integTestDir
     File buildFile
+    File settingsFile
 
     def setup() {
         integTestDir = new File('build/integTest')
@@ -54,6 +55,7 @@ buildscript {
 }
 
 """
+        settingsFile = createNewFile(integTestDir, 'settings.gradle')
     }
 
     protected File createNewDir(File parent, String dirname) {

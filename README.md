@@ -1,4 +1,4 @@
-# Gradle Sonatype Nexus plugin [![Build Status](https://travis-ci.org/bmuschko/gradle-nexus-plugin.svg?branch=master)](https://travis-ci.org/bmuschko/gradle-nexus-plugin)
+# Gradle Sonatype Nexus plugin [![Build Status](https://github.com/bmuschko/gradle-nexus-plugin/workflows/Build%20and%20Release%20%5BLinux%5D/badge.svg)](https://github.com/bmuschko/gradle-nexus-plugin/actions?query=workflow%3A%22Build+and+Release+%5BLinux%5D%22)
 
 ![Sonatype Logo](http://media.marketwire.com/attachments/200910/580330_sonatype.gif)
 
@@ -36,12 +36,12 @@ apply plugin: 'com.bmuschko.nexus'
 The plugin JAR needs to be defined in the classpath of your build script. It is directly available on
 [Bintray](https://bintray.com/bmuschko/gradle-plugins/com.bmuschko%3Agradle-nexus-plugin).
 Alternatively, you can download it from GitHub and deploy it to your local repository. The following code snippet shows an
-example on how to retrieve it from Bintray:
+example on how to retrieve it from Maven Central:
 
 ```groovy
  buildscript {
      repositories {
-         jcenter()
+         mavenCentral()
      }
      dependencies {
          classpath 'com.bmuschko:gradle-nexus-plugin:2.3.1'

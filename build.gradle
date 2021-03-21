@@ -1,5 +1,4 @@
 plugins {
-    id 'com.gradle.build-scan' version '1.16'
     id 'groovy'
     id 'java-gradle-plugin'
     id 'maven-publish'
@@ -7,8 +6,13 @@ plugins {
 }
 
 buildScan {
-    termsOfServiceUrl   = 'https://gradle.com/terms-of-service'
-    termsOfServiceAgree = 'yes'
+    termsOfServiceUrl = "https://gradle.com/terms-of-service"
+    termsOfServiceAgree = "yes"
+
+    if (System.getenv("CI")) {
+        publishAlways()
+        tag("CI")
+    }
 }
 
 def compatibilityVersion = 1.6
@@ -18,7 +22,7 @@ group = 'com.bmuschko'
 version = '2.3.1'
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 dependencies {
